@@ -8,6 +8,7 @@ class Tournament extends Equatable {
   final DateTime startDate;
   final DateTime endDate;
   final TournamentType type;
+  final List<String> teamIds;
 
   const Tournament({
     required this.id,
@@ -15,8 +16,9 @@ class Tournament extends Equatable {
     required this.startDate,
     required this.endDate,
     required this.type,
+    this.teamIds = const [],
   });
 
   @override
-  List<Object?> get props => [id, name, startDate, endDate, type];
+  List<Object?> get props => [id, name, startDate, endDate, type, teamIds];
 }

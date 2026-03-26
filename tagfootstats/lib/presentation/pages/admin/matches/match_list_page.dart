@@ -1,0 +1,59 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
+import 'package:tagfootstats/domain/entities/match.dart' as entity;
+import 'package:tagfootstats/domain/repositories/match_repository.dart';
+import 'package:tagfootstats/presentation/bloc/app/app_bloc.dart';
+import 'package:tagfootstats/presentation/widgets/match_summary_card.dart';
+
+class MatchListPage extends StatelessWidget {
+  const MatchListPage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('MATCHES')),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () {
+          // In a real app, we might need to pick a tournament/opponent first.
+          // For now, let's keep it simple or redirect to a creation form.
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Create match flow not yet implemented'),
+            ),
+          );
+        },
+        label: const Text('NEW MATCH'),
+        icon: const Icon(Icons.add),
+      ),
+      body: FutureBuilder<List<entity.Match>>(
+        future: context.read<MatchRepository>().getMatches(),
+        builder: (context, snapshot) {
+          if (!snapshot.hasData)
+            return const Center(child: CircularProgressIndicator());
+          if (snapshot.data!.isEmpty)
+            return const Center(child: Text('No matches found.'));
+
+          final matches = snapshot.data!;
+          final appState = context.read<AppBloc>().state;
+          if (appState is! AppReady) return const SizedBox.shrink();
+
+          return ListView.builder(
+            padding: const EdgeInsets.all(16),
+            itemCount: matches.length,
+            itemBuilder: (context, index) {
+              final match = matches[index];
+              return InkWell(
+                onTap: () => context.push('/match/${match.id}'),
+                child: MatchSummaryCard(
+                  match: match,
+                  ownTeam: appState.ownTeam,
+                ),
+              );
+            },
+          );
+        },
+      ),
+    );
+  }
+}

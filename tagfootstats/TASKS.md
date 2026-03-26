@@ -37,10 +37,10 @@
     - [ ] Match deletion and editing logic
 
 ## Phase 6: Home & Global Navigation [/]
-- [ ] Build Main Dashboard (Home)
-    - [ ] "Own Team" check and redirect
-    - [ ] Last Match summary card
-    - [ ] Navigation menu with icon buttons
+- [/] Build Main Dashboard (Home) [/]
+    - [x] "Own Team" check and redirect
+    - [x] Last Match summary card
+    - [x] Navigation menu with icon buttons
 - [ ] Implement Global Navigation (AppRouter/BottomNavBar)
 
 ## Phase 7: Verification & Launch [ ]

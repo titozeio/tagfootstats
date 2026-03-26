@@ -20,6 +20,14 @@ class FirestoreMatchRepository implements MatchRepository {
 
   @override
   Future<List<Match>> getMatchesByTournament(String tournamentId) async {
+    final snapshot = await _firestore
+        .collection(_collectionPath)
+        .where('tournamentId', isEqualTo: tournamentId)
+        .get();
+    return snapshot.docs
+        .map((doc) => MatchModel.fromJson({...doc.data(), 'id': doc.id}))
+        .toList();
+  }
 
   @override
   Future<Match?> getMatchById(String id) async {

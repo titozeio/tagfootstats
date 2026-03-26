@@ -26,8 +26,9 @@ class AddPlayEvent extends MatchEvent {
 class MatchUpdatedEvent extends MatchEvent {
   final Match? match;
   final List<Play> plays;
-  const MatchUpdatedEvent(this.match, this.plays);
+  final List<Player> players;
+  const MatchUpdatedEvent(this.match, this.plays, {this.players = const []});
 
   @override
-  List<Object?> get props => [match, plays];
+  List<Object?> get props => [match, plays, players];
 }

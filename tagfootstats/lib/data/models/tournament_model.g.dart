@@ -13,6 +13,9 @@ TournamentModel _$TournamentModelFromJson(Map<String, dynamic> json) =>
       startDate: DateTime.parse(json['startDate'] as String),
       endDate: DateTime.parse(json['endDate'] as String),
       type: $enumDecode(_$TournamentTypeEnumMap, json['type']),
+      teamIds: (json['teamIds'] as List<dynamic>)
+          .map((e) => e as String)
+          .toList(),
     );
 
 Map<String, dynamic> _$TournamentModelToJson(TournamentModel instance) =>
@@ -22,6 +25,7 @@ Map<String, dynamic> _$TournamentModelToJson(TournamentModel instance) =>
       'startDate': instance.startDate.toIso8601String(),
       'endDate': instance.endDate.toIso8601String(),
       'type': _$TournamentTypeEnumMap[instance.type]!,
+      'teamIds': instance.teamIds,
     };
 
 const _$TournamentTypeEnumMap = {

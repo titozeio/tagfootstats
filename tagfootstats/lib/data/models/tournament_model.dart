@@ -11,6 +11,7 @@ class TournamentModel extends Tournament {
     required super.startDate,
     required super.endDate,
     required super.type,
+    required super.teamIds,
   });
 
   factory TournamentModel.fromJson(Map<String, dynamic> json) =>
@@ -25,6 +26,7 @@ class TournamentModel extends Tournament {
       startDate: entity.startDate,
       endDate: entity.endDate,
       type: entity.type,
+      teamIds: entity.teamIds,
     );
   }
 }

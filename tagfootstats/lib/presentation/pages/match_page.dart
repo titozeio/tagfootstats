@@ -5,6 +5,8 @@ import 'package:tagfootstats/domain/entities/play.dart';
 import 'package:tagfootstats/domain/entities/match.dart' as entity;
 import 'package:tagfootstats/domain/repositories/match_repository.dart';
 import 'package:tagfootstats/domain/repositories/play_repository.dart';
+import 'package:tagfootstats/domain/repositories/player_repository.dart';
+import 'package:tagfootstats/domain/repositories/team_repository.dart';
 import 'package:tagfootstats/domain/usecases/add_play_to_match.dart';
 import 'package:tagfootstats/presentation/bloc/match/match_bloc.dart';
 import 'package:tagfootstats/presentation/widgets/play_entry_form.dart';
@@ -24,8 +26,10 @@ class MatchPage extends StatelessWidget {
 
     return BlocProvider(
       create: (context) => MatchBloc(
-        matchRepository: matchRepository,
-        playRepository: playRepository,
+        matchRepository: context.read<MatchRepository>(),
+        playRepository: context.read<PlayRepository>(),
+        playerRepository: context.read<PlayerRepository>(),
+        teamRepository: context.read<TeamRepository>(),
         addPlayToMatch: addPlayToMatch,
       )..add(LoadMatch(matchId)),
       child: const MatchView(),
@@ -127,39 +131,47 @@ class MatchView extends StatelessWidget {
   }
 
   Widget _buildMobileLayout(BuildContext context, MatchLoaded state) {
-    return Column(
-      children: [
-        Expanded(child: _buildPlayList(state)),
-        PlayEntryForm(
-          onPlayAdded: (phase, action, outcome, points) {
-            _onPlayAdded(
-              context,
-              state.match.id,
-              phase,
-              action,
-              outcome,
-              points,
-            );
-          },
-        ),
-      ],
+    return DefaultTabController(
+      length: 2,
+      child: Column(
+        children: [
+          const TabBar(
+            tabs: [
+              Tab(icon: Icon(Icons.sports_football), text: 'OFFENSE'),
+              Tab(icon: Icon(Icons.shield), text: 'DEFENSE'),
+            ],
+            indicatorColor: AppColors.nflGold,
+            labelColor: AppColors.nflGold,
+            unselectedLabelColor: Colors.grey,
+          ),
+          Expanded(
+            child: TabBarView(
+              children: [
+                _buildPhasePanel(context, state, PlayPhase.ataque),
+                _buildPhasePanel(context, state, PlayPhase.defensa),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 
   Widget _buildDesktopLayout(BuildContext context, MatchLoaded state) {
     return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Expanded(
           flex: 2,
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const Padding(
                 padding: EdgeInsets.all(16.0),
                 child: Text(
-                  'PLAY FEED',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                  'MATCH LOG',
+                  style: TextStyle(
+                    fontWeight: FontWeight.w900,
+                    color: Colors.grey,
+                  ),
                 ),
               ),
               Expanded(child: _buildPlayList(state)),
@@ -168,23 +180,55 @@ class MatchView extends StatelessWidget {
         ),
         const VerticalDivider(width: 1),
         Expanded(
-          flex: 1,
-          child: SingleChildScrollView(
-            child: PlayEntryForm(
-              onPlayAdded: (phase, action, outcome, points) {
-                _onPlayAdded(
-                  context,
-                  state.match.id,
-                  phase,
-                  action,
-                  outcome,
-                  points,
-                );
-              },
+          flex: 3,
+          child: DefaultTabController(
+            length: 2,
+            child: Column(
+              children: [
+                const TabBar(
+                  tabs: [
+                    Tab(icon: Icon(Icons.sports_football), text: 'OFFENSE'),
+                    Tab(icon: Icon(Icons.shield), text: 'DEFENSE'),
+                  ],
+                  indicatorColor: AppColors.nflGold,
+                  labelColor: AppColors.nflGold,
+                ),
+                Expanded(
+                  child: TabBarView(
+                    children: [
+                      _buildPhasePanel(context, state, PlayPhase.ataque),
+                      _buildPhasePanel(context, state, PlayPhase.defensa),
+                    ],
+                  ),
+                ),
+              ],
             ),
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildPhasePanel(
+    BuildContext context,
+    MatchLoaded state,
+    PlayPhase phase,
+  ) {
+    return PlayEntryForm(
+      phase: phase,
+      players: state.players,
+      onPlayAdded: (action, outcome, points, yardas, players) {
+        _onPlayAdded(
+          context,
+          state.match.id,
+          phase,
+          action,
+          outcome,
+          points,
+          yardas,
+          players,
+        );
+      },
     );
   }
 
@@ -220,15 +264,19 @@ class MatchView extends StatelessWidget {
     String action,
     String outcome,
     int points,
+    int yardas,
+    List<String> players,
   ) {
     final play = Play(
       id: DateTime.now().millisecondsSinceEpoch.toString(),
       matchId: matchId,
       phase: phase,
-      minute: 0, // Should be dynamic
+      minute: 0,
       action: action,
       outcome: outcome,
       points: points,
+      yardas: yardas,
+      involvedPlayerIds: players,
     );
     context.read<MatchBloc>().add(AddPlayEvent(play));
   }
