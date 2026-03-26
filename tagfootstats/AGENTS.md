@@ -17,19 +17,29 @@ Agents MUST consult these documents before any coding task:
 3. `TASKS.md`: Current progress and pending tasks.
 
 ## Mandatory Rules (The Contract)
-1. **Code Generation**:
-   - Always include unit/widget/integration tests (100% logic coverage).
-   - Use `DartDoc` for all public classes and methods.
-   - Follow Flutter's official style guide (`lints`).
-2. **Documentation Maintenance**:
-   - Update `docs/specs/` if requirements change.
-   - Update `docs/architecture/` (UMLs/ERD) when modifying the system structure.
-   - Maintain `TASKS.md` after completing a sub-task.
-3. **Architecture Diagrams**:
-   - Use Mermaid syntax for diagrams in markdown files.
-4. **CI/CD**:
-   - Ensure `.github/workflows/` are updated and passing.
-5. **Firebase**:
-   - Follow Firebase best practices for security rules and data modeling.
-6. **Responsive Design**:
-   - Use adaptive layouts to support mobile (Android) and desktop/web.
+
+### 1. Correlative Development Flow
+Every feature/change must follow this STRICT sequence:
+1. **Specs**: Define/Update the functional specification in `docs/specs/`.
+2. **Architecture**: Design/Update UMLs, ERD, and Technical Design in `docs/architecture/`.
+3. **Documentation/Comments**: Write/Update DartDoc and internal comments in the code to reflect the architectural and functional intent.
+4. **Implementation**: Write the actual code (Dart/Flutter).
+5. **Testing**: Write Unit/Widget/Integration tests (Target: 100% logic coverage).
+
+### 2. Synchronization & Change Management
+If a code change is requested or necessary:
+1. **Re-Review Comments**: Ensure code comments are still accurate.
+2. **Update Tests**: Adjust or add tests to cover the change.
+3. **Sync Architecture**: Modify Mermaid diagrams in `docs/architecture/` if the structure changed.
+4. **Close the Loop (Specs)**: Update `docs/specs/` to ensure the "Source of Truth" matches the implementation.
+**GOAL**: Zero drift between Specs, Architecture, and Code.
+
+### 3. Quality & CI/CD
+- **Mandatory Testing**: Every significant piece of logic, UI component (Widget), or data repository MUST have associated tests.
+- **CI/CD Maintenance**: Ensure `.github/workflows/` are passing. Any change that breaks CI/CD MUST be prioritized and fixed immediately.
+- **DartDoc**: Use `///` for documentation comments. Every public member must be documented.
+- **Linting**: No lints/warnings allowed in the final code.
+
+### 4. Responsive & Platform Design
+- **Adaptive Layouts**: Use `LayoutBuilder`, `adaptive` constructors, or screen-size breakpoints.
+- **Target**: Android (Primary), Desktop/Web (Secondary).
