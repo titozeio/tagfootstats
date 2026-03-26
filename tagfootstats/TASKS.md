@@ -26,7 +26,7 @@
 - [x] Implement NFL-style Scoreboard
 - [x] Build Play Entry Forms (Ataque, Defensa, Extra Point)
 - [x] Mobile View (Android Focus)
-- [ ] Desktop/Web Layout (Secondary)
+- [x] Desktop/Web Layout (Secondary)
 
 ## Phase 5: Verification & Launch [ ]
 - [ ] Integration Testing
