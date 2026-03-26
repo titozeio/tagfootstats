@@ -12,7 +12,7 @@
 - [x] Technical Design (`docs/architecture/technical_design.md`)
 
 ## Phase 2: Data Layer (Implementation) [/]
-- [ ] Initialize Firebase models in Dart (`json_serializable`)
+- [x] Initialize Firebase in Dart (`firebase_core`)
 - [ ] Implement Firestore Repositories
 - [ ] Unit Tests for Data Layer
 

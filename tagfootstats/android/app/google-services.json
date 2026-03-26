@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "208131680490",
+    "project_id": "tagfootstats",
+    "storage_bucket": "tagfootstats.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:208131680490:android:5a928e64c1521424460f93",
+        "android_client_info": {
+          "package_name": "com.example.tagfootstats"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA0-fSqHIk3lhcjgrokDdros0CM-CVsi-k"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
