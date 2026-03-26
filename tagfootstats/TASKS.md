@@ -22,10 +22,10 @@
 - [x] Implement Team/Player CRUD Use Cases
 - [x] Unit Tests for Business Logic
 
-## Phase 4: UI/UX & Responsive [ ]
-- [ ] Implement NFL-style Scoreboard
-- [ ] Build Play Entry Forms (Ataque, Defensa, Extra Point)
-- [ ] Mobile View (Android Focus)
+## Phase 4: UI/UX & Responsive [x]
+- [x] Implement NFL-style Scoreboard
+- [x] Build Play Entry Forms (Ataque, Defensa, Extra Point)
+- [x] Mobile View (Android Focus)
 - [ ] Desktop/Web Layout (Secondary)
 
 ## Phase 5: Verification & Launch [ ]
