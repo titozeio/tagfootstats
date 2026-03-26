@@ -17,10 +17,10 @@
 - [x] Implement Firestore Repositories
 - [x] Unit Tests for Data Layer
 
-## Phase 3: Domain & Logic (State Management) [ ]
-- [ ] Implement Match BLoC (Real-time scoring)
-- [ ] Implement Team/Player CRUD Use Cases
-- [ ] Unit Tests for Business Logic
+## Phase 3: Domain & Logic (State Management) [x]
+- [x] Implement Match BLoC (Real-time scoring)
+- [x] Implement Team/Player CRUD Use Cases
+- [x] Unit Tests for Business Logic
 
 ## Phase 4: UI/UX & Responsive [ ]
 - [ ] Implement NFL-style Scoreboard
