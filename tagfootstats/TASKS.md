@@ -22,13 +22,29 @@
 - [x] Implement Team/Player CRUD Use Cases
 - [x] Unit Tests for Business Logic
 
-## Phase 4: UI/UX & Responsive [x]
-- [x] Implement NFL-style Scoreboard
-- [x] Build Play Entry Forms (Ataque, Defensa, Extra Point)
-- [x] Mobile View (Android Focus)
-- [x] Desktop/Web Layout (Secondary)
+## Phase 5: Administrative UI & CRUD (Administrative Management) [ ]
+- [ ] Implement Team CRUD Screens
+    - [ ] Own Team setup flow
+    - [ ] General Teams list and editor
+- [ ] Implement Player CRUD Screens
+    - [ ] Player list (filtered by team)
+    - [ ] Player editor
+- [ ] Implement Tournament CRUD Screens
+    - [ ] Tournament list (with LIVE status logic)
+    - [ ] Tournament editor (Team association)
+- [ ] Implement Match History & CRUD
+    - [ ] Match list with summary cards
+    - [ ] Match deletion and editing logic
 
-## Phase 5: Verification & Launch [ ]
+## Phase 6: Home & Global Navigation [/]
+- [ ] Build Main Dashboard (Home)
+    - [ ] "Own Team" check and redirect
+    - [ ] Last Match summary card
+    - [ ] Navigation menu with icon buttons
+- [ ] Implement Global Navigation (AppRouter/BottomNavBar)
+
+## Phase 7: Verification & Launch [ ]
 - [ ] Integration Testing
-- [ ] Performance Optimization
+- [ ] Final UI Polish (Animations & Feedback)
+- [ ] Production Build & Deployment
 - [ ] Beta Release (Android APK)

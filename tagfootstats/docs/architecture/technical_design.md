@@ -4,23 +4,27 @@ All interactions are managed through the Flutter application by the team's manag
 ```mermaid
 useCaseDiagram
     actor "Manager / Coach" as user
-    package "Team Management" {
-        usecase "Manage Tournaments" as UC1
-        usecase "Manage Teams & Players" as UC2
+    package "Administrative Management" {
+        usecase "Manage Tournaments (CRUD)" as UC1
+        usecase "Manage Teams & Players (CRUD)" as UC2
+        usecase "Configure Own Team" as UC_OWN
     }
     package "Match Recording (Real-time)" {
         usecase "Initialize Match" as UC3
         usecase "Record Play (Ataque/Defensa/Extra)" as UC4
         usecase "Real-time Scoreboard & Highlights" as UC5
+        usecase "Manage Matches (CRUD)" as UC_MATCH
     }
     package "Analytics" {
         usecase "Consult Stats" as UC6
     }
     user --> UC1
     user --> UC2
+    user --> UC_OWN
     user --> UC3
     user --> UC4
     user --> UC5
+    user --> UC_MATCH
     user --> UC6
 ```
 
