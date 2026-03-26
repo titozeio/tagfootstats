@@ -11,10 +11,11 @@
 - [x] Define App Architecture (Clean Architecture)
 - [x] Technical Design (`docs/architecture/technical_design.md`)
 
-## Phase 2: Data Layer (Implementation) [/]
+## Phase 2: Data Layer (Implementation) [x]
 - [x] Initialize Firebase in Dart (`firebase_core`)
-- [ ] Implement Firestore Repositories
-- [ ] Unit Tests for Data Layer
+- [x] Define Domain Entities and Data Models (`json_serializable`)
+- [x] Implement Firestore Repositories
+- [x] Unit Tests for Data Layer
 
 ## Phase 3: Domain & Logic (State Management) [ ]
 - [ ] Implement Match BLoC (Real-time scoring)
