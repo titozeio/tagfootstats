@@ -14,15 +14,7 @@ class MatchListPage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(title: const Text('MATCHES')),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {
-          // In a real app, we might need to pick a tournament/opponent first.
-          // For now, let's keep it simple or redirect to a creation form.
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Create match flow not yet implemented'),
-            ),
-          );
-        },
+        onPressed: () => context.push('/matches/new'),
         label: const Text('NEW MATCH'),
         icon: const Icon(Icons.add),
       ),

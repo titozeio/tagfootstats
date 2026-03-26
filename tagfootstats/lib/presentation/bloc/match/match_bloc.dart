@@ -41,31 +41,57 @@ class MatchBloc extends Bloc<MatchEvent, MatchState> {
     await _playsSubscription?.cancel();
 
     try {
-      // 1. Fetch Roster (Home Team)
-      final ownTeam = await teamRepository.getOwnTeam();
+      // 1. Fetch Roster (Home Team) - with 10s timeout
+      final ownTeam = await teamRepository.getOwnTeam().timeout(
+        const Duration(seconds: 10),
+      );
+
       List<Player> players = [];
       if (ownTeam != null) {
-        players = await playerRepository.getPlayersByTeam(ownTeam.id);
+        players = await playerRepository
+            .getPlayersByTeam(ownTeam.id)
+            .timeout(const Duration(seconds: 10));
       }
 
       // 2. Listen for real-time updates of match and plays
-      _matchSubscription = matchRepository.watchMatch(event.matchId).listen((
-        match,
-      ) {
-        if (match == null) {
-          add(MatchUpdatedEvent(null, const [], players: players));
-          return;
-        }
+      _matchSubscription = matchRepository
+          .watchMatch(event.matchId)
+          .listen(
+            (match) {
+              if (match == null) {
+                // If match is null, we still emit so the UI can show "Match not found" instead of a spinner
+                add(MatchUpdatedEvent(null, const [], players: players));
+                return;
+              }
 
-        // When we have the match, we start listening for plays if not already
-        _playsSubscription ??= playRepository
-            .watchPlaysByMatch(event.matchId)
-            .listen((plays) {
-              add(MatchUpdatedEvent(match, plays, players: players));
-            });
-      });
+              // When we have the match, we start listening for plays if not already
+              _playsSubscription ??= playRepository
+                  .watchPlaysByMatch(event.matchId)
+                  .listen(
+                    (plays) {
+                      add(MatchUpdatedEvent(match, plays, players: players));
+                    },
+                    onError: (e) {
+                      add(MatchUpdatedEvent(match, const [], players: players));
+                    },
+                  );
+            },
+            onError: (e) {
+              add(MatchUpdatedEvent(null, const [], players: players));
+            },
+          );
     } catch (e) {
-      emit(MatchError('Error loading match: $e'));
+      // If roster fails, we still want to show the match
+      _matchSubscription = matchRepository
+          .watchMatch(event.matchId)
+          .listen(
+            (match) {
+              add(MatchUpdatedEvent(match, const [], players: const []));
+            },
+            onError: (err) {
+              add(MatchUpdatedEvent(null, const [], players: const []));
+            },
+          );
     }
   }
 

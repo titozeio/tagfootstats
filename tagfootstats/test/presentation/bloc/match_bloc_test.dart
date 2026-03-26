@@ -8,25 +8,39 @@ import 'package:tagfootstats/domain/repositories/play_repository.dart';
 import 'package:tagfootstats/domain/usecases/add_play_to_match.dart';
 import 'package:tagfootstats/presentation/bloc/match/match_bloc.dart';
 
+import 'package:tagfootstats/domain/repositories/player_repository.dart';
+import 'package:tagfootstats/domain/repositories/team_repository.dart';
+
 class MockMatchRepository extends Mock implements MatchRepository {}
 
 class MockPlayRepository extends Mock implements PlayRepository {}
 
 class MockAddPlayToMatch extends Mock implements AddPlayToMatch {}
 
+class MockPlayerRepository extends Mock implements PlayerRepository {}
+
+class MockTeamRepository extends Mock implements TeamRepository {}
+
 void main() {
   late MatchBloc matchBloc;
   late MockMatchRepository mockMatchRepository;
   late MockPlayRepository mockPlayRepository;
   late MockAddPlayToMatch mockAddPlayToMatch;
+  late MockPlayerRepository mockPlayerRepository;
+  late MockTeamRepository mockTeamRepository;
 
   setUp(() {
     mockMatchRepository = MockMatchRepository();
     mockPlayRepository = MockPlayRepository();
     mockAddPlayToMatch = MockAddPlayToMatch();
+    mockPlayerRepository = MockPlayerRepository();
+    mockTeamRepository = MockTeamRepository();
+
     matchBloc = MatchBloc(
       matchRepository: mockMatchRepository,
       playRepository: mockPlayRepository,
+      playerRepository: mockPlayerRepository,
+      teamRepository: mockTeamRepository,
       addPlayToMatch: mockAddPlayToMatch,
     );
   });
@@ -58,6 +72,9 @@ void main() {
       'emits [MatchLoading, MatchLoaded] when LoadMatch is successful',
       build: () {
         when(
+          () => mockTeamRepository.getOwnTeam(),
+        ).thenAnswer((_) async => null);
+        when(
           () => mockMatchRepository.watchMatch('1'),
         ).thenAnswer((_) => Stream.value(tMatch));
         when(
@@ -68,13 +85,16 @@ void main() {
       act: (bloc) => bloc.add(const LoadMatch('1')),
       expect: () => [
         MatchLoading(),
-        MatchLoaded(match: tMatch, plays: [tPlay]),
+        MatchLoaded(match: tMatch, plays: [tPlay], players: const []),
       ],
     );
 
     blocTest<MatchBloc, MatchState>(
       'emits [MatchError] when match is not found',
       build: () {
+        when(
+          () => mockTeamRepository.getOwnTeam(),
+        ).thenAnswer((_) async => null);
         when(
           () => mockMatchRepository.watchMatch('1'),
         ).thenAnswer((_) => Stream.value(null));
