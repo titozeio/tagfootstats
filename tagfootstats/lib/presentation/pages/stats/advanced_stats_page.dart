@@ -78,14 +78,14 @@ class _StatsLoader extends StatelessWidget {
     // Actually our Match has opponentId and locationType
     // We'll collect all match IDs
     final matchIds = matches.map((m) => m.id).toList();
-    final plays = await context.read<PlayRepository>().getPlaysByMatches(matchIds);
-    final players = await context.read<PlayerRepository>().getPlayersByTeam(ownTeamId);
+    final plays = await context.read<PlayRepository>().getPlaysByMatches(
+      matchIds,
+    );
+    final players = await context.read<PlayerRepository>().getPlayersByTeam(
+      ownTeamId,
+    );
 
-    return {
-      'matches': matches,
-      'plays': plays,
-      'players': players,
-    };
+    return {'matches': matches, 'plays': plays, 'players': players};
   }
 }
 
@@ -97,7 +97,8 @@ class _TeamStatsTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (matches.isEmpty) return const Center(child: Text('No hay partidos registrados'));
+    if (matches.isEmpty)
+      return const Center(child: Text('No hay partidos registrados'));
 
     // Compute Stats
     int totalOffPoints = 0;
@@ -121,7 +122,7 @@ class _TeamStatsTab extends StatelessWidget {
         totalOffYards += p.yardas;
         if (p.yardas > 0 || p.points > 0) successfulOffPlays++;
         if (p.points >= 6) totalOffTDs++;
-        
+
         if (p.action == 'PASE') {
           totalPasses++;
           if (p.outcome == 'COMPLETO') completedPasses++;
@@ -140,8 +141,12 @@ class _TeamStatsTab extends StatelessWidget {
 
     final avgPpg = matches.isEmpty ? 0 : totalOffPoints / matches.length;
     final ypp = offPlaysCount == 0 ? 0 : totalOffYards / offPlaysCount;
-    final successRate = offPlaysCount == 0 ? 0 : (successfulOffPlays / offPlaysCount) * 100;
-    final compPct = totalPasses == 0 ? 0 : (completedPasses / totalPasses) * 100;
+    final successRate = offPlaysCount == 0
+        ? 0
+        : (successfulOffPlays / offPlaysCount) * 100;
+    final compPct = totalPasses == 0
+        ? 0
+        : (completedPasses / totalPasses) * 100;
     final tdRate = offPlaysCount == 0 ? 0 : (totalOffTDs / offPlaysCount) * 100;
     final turnoverDiff = (totalDefInts) - (totalOffInts + totalOffFumbles);
 
@@ -152,35 +157,92 @@ class _TeamStatsTab extends StatelessWidget {
         children: [
           Row(
             children: [
-              Expanded(child: _buildStatCard('EFICIENCIA (Success Rate)', '${successRate.toStringAsFixed(1)}%', 'Jugadas con avance')),
+              Expanded(
+                child: _buildStatCard(
+                  'EFICIENCIA (Success Rate)',
+                  '${successRate.toStringAsFixed(1)}%',
+                  'Jugadas con avance',
+                ),
+              ),
               const SizedBox(width: 16),
-              Expanded(child: _buildStatCard('YDS / PLAY', ypp.toStringAsFixed(1), 'Yardas promedio')),
+              Expanded(
+                child: _buildStatCard(
+                  'YDS / PLAY',
+                  ypp.toStringAsFixed(1),
+                  'Yardas promedio',
+                ),
+              ),
             ],
           ),
           const SizedBox(height: 16),
           Row(
             children: [
-              Expanded(child: _buildStatCard('TD RATE', '${tdRate.toStringAsFixed(1)}%', 'TDs por jugada')),
+              Expanded(
+                child: _buildStatCard(
+                  'TD RATE',
+                  '${tdRate.toStringAsFixed(1)}%',
+                  'TDs por jugada',
+                ),
+              ),
               const SizedBox(width: 16),
-              Expanded(child: _buildStatCard('DIFF TURNOVERS', (turnoverDiff > 0 ? '+$turnoverDiff' : turnoverDiff.toString()), 'Balones recuperados/perdidos')),
+              Expanded(
+                child: _buildStatCard(
+                  'DIFF TURNOVERS',
+                  (turnoverDiff > 0
+                      ? '+$turnoverDiff'
+                      : turnoverDiff.toString()),
+                  'Balones recuperados/perdidos',
+                ),
+              ),
             ],
           ),
           const SizedBox(height: 16),
           Row(
             children: [
-              Expanded(child: _buildStatCard('PPG', avgPpg.toStringAsFixed(1), 'Puntos por partido')),
+              Expanded(
+                child: _buildStatCard(
+                  'PPG',
+                  avgPpg.toStringAsFixed(1),
+                  'Puntos por partido',
+                ),
+              ),
               const SizedBox(width: 16),
-              Expanded(child: _buildStatCard('COMP%', '${compPct.toStringAsFixed(1)}%', '$completedPasses/$totalPasses comp')),
+              Expanded(
+                child: _buildStatCard(
+                  'COMP%',
+                  '${compPct.toStringAsFixed(1)}%',
+                  '$completedPasses/$totalPasses comp',
+                ),
+              ),
             ],
           ),
           const SizedBox(height: 24),
-          const Text('DEFENSA', style: TextStyle(fontWeight: FontWeight.w900, color: Colors.grey, fontSize: 12)),
+          const Text(
+            'DEFENSA',
+            style: TextStyle(
+              fontWeight: FontWeight.w900,
+              color: Colors.grey,
+              fontSize: 12,
+            ),
+          ),
           const SizedBox(height: 8),
           Row(
             children: [
-              Expanded(child: _buildStatCard('DEF SACKS', totalDefSacks.toString(), 'Total Sacks')),
+              Expanded(
+                child: _buildStatCard(
+                  'DEF SACKS',
+                  totalDefSacks.toString(),
+                  'Total Sacks',
+                ),
+              ),
               const SizedBox(width: 16),
-              Expanded(child: _buildStatCard('DEF INTs', totalDefInts.toString(), 'Intercepciones')),
+              Expanded(
+                child: _buildStatCard(
+                  'DEF INTs',
+                  totalDefInts.toString(),
+                  'Intercepciones',
+                ),
+              ),
             ],
           ),
           const SizedBox(height: 24),
@@ -201,11 +263,28 @@ class _TeamStatsTab extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(title, style: const TextStyle(fontSize: 10, color: Colors.grey, fontWeight: FontWeight.bold)),
+          Text(
+            title,
+            style: const TextStyle(
+              fontSize: 10,
+              color: Colors.grey,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
           const SizedBox(height: 8),
-          Text(value, style: const TextStyle(fontSize: 32, fontWeight: FontWeight.w900, color: AppColors.nflGold)),
+          Text(
+            value,
+            style: const TextStyle(
+              fontSize: 32,
+              fontWeight: FontWeight.w900,
+              color: AppColors.nflGold,
+            ),
+          ),
           const SizedBox(height: 4),
-          Text(subtitle, style: const TextStyle(fontSize: 12, color: Colors.white70)),
+          Text(
+            subtitle,
+            style: const TextStyle(fontSize: 12, color: Colors.white70),
+          ),
         ],
       ),
     );
@@ -226,20 +305,41 @@ class _TeamStatsTab extends StatelessWidget {
       ),
       child: Column(
         children: [
-          const Text('MIX DE JUGADAS (PASE VS CARRERA)', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+          const Text(
+            'MIX DE JUGADAS (PASE VS CARRERA)',
+            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+          ),
           const SizedBox(height: 20),
           Row(
             children: [
-              Expanded(flex: passes, child: Container(height: 12, color: AppColors.primaryBlue)),
-              Expanded(flex: runs, child: Container(height: 12, color: AppColors.accentRed)),
+              Expanded(
+                flex: passes,
+                child: Container(height: 12, color: AppColors.primaryBlue),
+              ),
+              Expanded(
+                flex: runs,
+                child: Container(height: 12, color: AppColors.accentRed),
+              ),
             ],
           ),
           const SizedBox(height: 12),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('PASE: ${passPct.toStringAsFixed(0)}%', style: const TextStyle(color: AppColors.primaryBlue, fontWeight: FontWeight.bold)),
-              Text('CARRERA: ${runPct.toStringAsFixed(0)}%', style: const TextStyle(color: AppColors.accentRed, fontWeight: FontWeight.bold)),
+              Text(
+                'PASE: ${passPct.toStringAsFixed(0)}%',
+                style: const TextStyle(
+                  color: AppColors.primaryBlue,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              Text(
+                'CARRERA: ${runPct.toStringAsFixed(0)}%',
+                style: const TextStyle(
+                  color: AppColors.accentRed,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
             ],
           ),
         ],
@@ -297,7 +397,9 @@ class _PlayerStatsTabState extends State<_PlayerStatsTab> {
 
     _statsList = statsMap.values.toList();
     for (var s in _statsList) {
-      s.targetShare = totalTeamPlays == 0 ? 0 : (s.totalInvolvement / totalTeamPlays) * 100;
+      s.targetShare = totalTeamPlays == 0
+          ? 0
+          : (s.totalInvolvement / totalTeamPlays) * 100;
     }
     _sort(1, false);
   }
@@ -310,16 +412,42 @@ class _PlayerStatsTabState extends State<_PlayerStatsTab> {
         dynamic aValue;
         dynamic bValue;
         switch (columnIndex) {
-          case 0: aValue = a.name; bValue = b.name; break;
-          case 1: aValue = a.points; bValue = b.points; break;
-          case 2: aValue = a.yards; bValue = b.yards; break;
-          case 3: aValue = a.pulls; bValue = b.pulls; break;
-          case 4: aValue = a.ints; bValue = b.ints; break;
-          case 5: aValue = a.sacks; bValue = b.sacks; break;
-          case 6: aValue = a.targetShare; bValue = b.targetShare; break;
-          default: aValue = a.points; bValue = b.points; break;
+          case 0:
+            aValue = a.name;
+            bValue = b.name;
+            break;
+          case 1:
+            aValue = a.points;
+            bValue = b.points;
+            break;
+          case 2:
+            aValue = a.yards;
+            bValue = b.yards;
+            break;
+          case 3:
+            aValue = a.pulls;
+            bValue = b.pulls;
+            break;
+          case 4:
+            aValue = a.ints;
+            bValue = b.ints;
+            break;
+          case 5:
+            aValue = a.sacks;
+            bValue = b.sacks;
+            break;
+          case 6:
+            aValue = a.targetShare;
+            bValue = b.targetShare;
+            break;
+          default:
+            aValue = a.points;
+            bValue = b.points;
+            break;
         }
-        return ascending ? Comparable.compare(aValue, bValue) : Comparable.compare(bValue, aValue);
+        return ascending
+            ? Comparable.compare(aValue, bValue)
+            : Comparable.compare(bValue, aValue);
       });
     });
   }
@@ -334,79 +462,130 @@ class _PlayerStatsTabState extends State<_PlayerStatsTab> {
           SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             child: ConstrainedBox(
-              constraints: BoxConstraints(minWidth: MediaQuery.of(context).size.width),
+              constraints: BoxConstraints(
+                minWidth: MediaQuery.of(context).size.width,
+              ),
               child: DataTable(
                 sortColumnIndex: _sortColumnIndex,
                 sortAscending: _sortAscending,
                 columnSpacing: 64,
                 horizontalMargin: 24,
                 headingRowColor: WidgetStateProperty.all(Colors.white10),
-              columns: [
-                DataColumn(label: const Text('JUGADOR'), onSort: _sort),
-                DataColumn(label: const Text('PTS'), numeric: true, onSort: _sort),
-                DataColumn(label: const Text('YDS'), numeric: true, onSort: _sort),
-                DataColumn(label: const Text('PULLS'), numeric: true, onSort: _sort),
-                DataColumn(label: const Text('INT'), numeric: true, onSort: _sort),
-                DataColumn(label: const Text('SACK'), numeric: true, onSort: _sort),
-                DataColumn(label: const Text('SHARE%'), numeric: true, onSort: _sort),
-              ],
-              rows: _statsList.map((s) {
-                return DataRow(
-                  cells: [
-                    DataCell(
-                      Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          CircleAvatar(
-                            radius: 14,
-                            backgroundColor: Colors.white12,
-                            child: ClipOval(
-                              child: (s.photoUrl != null && s.photoUrl!.trim().isNotEmpty)
-                                  ? Image.network(
-                                      s.photoUrl!.trim(),
-                                      width: 28,
-                                      height: 28,
-                                      fit: BoxFit.cover,
-                                      errorBuilder: (context, error, stackTrace) =>
-                                          const Icon(Icons.person, size: 14),
-                                    )
-                                  : const Icon(Icons.person, size: 14),
+                columns: [
+                  DataColumn(label: const Text('JUGADOR'), onSort: _sort),
+                  DataColumn(
+                    label: const Text('PTS'),
+                    numeric: true,
+                    onSort: _sort,
+                  ),
+                  DataColumn(
+                    label: const Text('YDS'),
+                    numeric: true,
+                    onSort: _sort,
+                  ),
+                  DataColumn(
+                    label: const Text('PULLS'),
+                    numeric: true,
+                    onSort: _sort,
+                  ),
+                  DataColumn(
+                    label: const Text('INT'),
+                    numeric: true,
+                    onSort: _sort,
+                  ),
+                  DataColumn(
+                    label: const Text('SACK'),
+                    numeric: true,
+                    onSort: _sort,
+                  ),
+                  DataColumn(
+                    label: const Text('SHARE%'),
+                    numeric: true,
+                    onSort: _sort,
+                  ),
+                ],
+                rows: _statsList.map((s) {
+                  return DataRow(
+                    cells: [
+                      DataCell(
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            CircleAvatar(
+                              radius: 14,
+                              backgroundColor: Colors.white12,
+                              child: ClipOval(
+                                child:
+                                    (s.photoUrl != null &&
+                                        s.photoUrl!.trim().isNotEmpty)
+                                    ? Image.network(
+                                        s.photoUrl!.trim(),
+                                        width: 28,
+                                        height: 28,
+                                        fit: BoxFit.cover,
+                                        errorBuilder:
+                                            (context, error, stackTrace) =>
+                                                const Icon(
+                                                  Icons.person,
+                                                  size: 14,
+                                                ),
+                                      )
+                                    : const Icon(Icons.person, size: 14),
+                              ),
                             ),
-                          ),
-                          const SizedBox(width: 10),
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text(
-                                s.name.toUpperCase(),
-                                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 10),
-                              ),
-                              Text(
-                                '#${s.dorsal}',
-                                style: const TextStyle(fontSize: 9, color: AppColors.nflGold),
-                              ),
-                            ],
-                          ),
-                        ],
+                            const SizedBox(width: 10),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text(
+                                  s.name.toUpperCase(),
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 10,
+                                  ),
+                                ),
+                                Text(
+                                  '#${s.dorsal}',
+                                  style: const TextStyle(
+                                    fontSize: 9,
+                                    color: AppColors.nflGold,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
-                    DataCell(Text(s.points.toString(), style: const TextStyle(fontWeight: FontWeight.w900, color: Colors.green))),
-                    DataCell(Text(s.yards.toString())),
-                    DataCell(Text(s.pulls.toString())),
-                    DataCell(Text(s.ints.toString(), style: const TextStyle(color: Colors.orange))),
-                    DataCell(Text(s.sacks.toString())),
-                    DataCell(Text('${s.targetShare.toStringAsFixed(1)}%')),
-                  ],
-                );
-              }).toList(),
+                      DataCell(
+                        Text(
+                          s.points.toString(),
+                          style: const TextStyle(
+                            fontWeight: FontWeight.w900,
+                            color: Colors.green,
+                          ),
+                        ),
+                      ),
+                      DataCell(Text(s.yards.toString())),
+                      DataCell(Text(s.pulls.toString())),
+                      DataCell(
+                        Text(
+                          s.ints.toString(),
+                          style: const TextStyle(color: Colors.orange),
+                        ),
+                      ),
+                      DataCell(Text(s.sacks.toString())),
+                      DataCell(Text('${s.targetShare.toStringAsFixed(1)}%')),
+                    ],
+                  );
+                }).toList(),
+              ),
             ),
           ),
-        ),
-      ],
-    ),
-  );
-}
+        ],
+      ),
+    );
+  }
 }
 
 class _PlayerStats {

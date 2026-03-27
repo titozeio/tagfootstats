@@ -29,15 +29,15 @@ class Play extends Equatable {
 
   @override
   List<Object?> get props => [
-        id,
-        matchId,
-        phase,
-        minute,
-        action,
-        outcome,
-        points,
-        yardas,
-        down,
-        involvedPlayerIds,
-      ];
+    id,
+    matchId,
+    phase,
+    minute,
+    action,
+    outcome,
+    points,
+    yardas,
+    down,
+    involvedPlayerIds,
+  ];
 }

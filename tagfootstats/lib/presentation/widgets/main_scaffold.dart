@@ -10,10 +10,11 @@ class MainScaffold extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final location = GoRouterState.of(context).uri.toString();
-    
+
     int currentIndex = 0;
     if (location.startsWith('/matches')) currentIndex = 1;
-    if (location.startsWith('/teams') || location.startsWith('/players')) currentIndex = 2;
+    if (location.startsWith('/teams') || location.startsWith('/players'))
+      currentIndex = 2;
     if (location.startsWith('/tournaments')) currentIndex = 3;
     if (location.startsWith('/settings')) currentIndex = 4;
 
@@ -46,9 +47,15 @@ class MainScaffold extends StatelessWidget {
         unselectedItemColor: Colors.grey,
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-          BottomNavigationBarItem(icon: Icon(Icons.scoreboard), label: 'Partidos'),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.scoreboard),
+            label: 'Partidos',
+          ),
           BottomNavigationBarItem(icon: Icon(Icons.groups), label: 'Equipos'),
-          BottomNavigationBarItem(icon: Icon(Icons.emoji_events), label: 'Torneos'),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.emoji_events),
+            label: 'Torneos',
+          ),
           BottomNavigationBarItem(icon: Icon(Icons.settings), label: 'Ajustes'),
         ],
       ),

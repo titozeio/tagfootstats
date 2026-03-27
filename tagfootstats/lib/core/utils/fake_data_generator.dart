@@ -22,18 +22,30 @@ class FakeDataGenerator {
   }) async {
     final now = DateTime.now();
     // 0. Create a Fake Tournament
-    await tournamentRepo.saveTournament(Tournament(
-      id: 'tour_fake',
-      name: 'TORNEO DE PRUEBA',
-      startDate: now.subtract(const Duration(days: 30)),
-      endDate: now.add(const Duration(days: 30)),
-      type: TournamentType.liga,
-    ));
+    await tournamentRepo.saveTournament(
+      Tournament(
+        id: 'tour_fake',
+        name: 'TORNEO DE PRUEBA',
+        startDate: now.subtract(const Duration(days: 30)),
+        endDate: now.add(const Duration(days: 30)),
+        type: TournamentType.liga,
+      ),
+    );
 
     // 1. Create 2 Opponent Teams
     final opponentTeams = [
-      Team(id: 'opp_1', name: 'Spartans', isOwnTeam: false, logoUrl: 'https://cdn-icons-png.flaticon.com/512/2822/2822101.png'),
-      Team(id: 'opp_2', name: 'Raiders', isOwnTeam: false, logoUrl: 'https://cdn-icons-png.flaticon.com/512/861/861506.png'),
+      Team(
+        id: 'opp_1',
+        name: 'Spartans',
+        isOwnTeam: false,
+        logoUrl: 'https://cdn-icons-png.flaticon.com/512/2822/2822101.png',
+      ),
+      Team(
+        id: 'opp_2',
+        name: 'Raiders',
+        isOwnTeam: false,
+        logoUrl: 'https://cdn-icons-png.flaticon.com/512/861/861506.png',
+      ),
     ];
 
     for (var t in opponentTeams) {
@@ -42,9 +54,36 @@ class FakeDataGenerator {
 
     // 2. Create some players for current team
     final fakePlayers = [
-      Player(id: 'p_1', teamId: currentTeamId, firstName: 'Peyton', lastName: 'Manning', dorsal: 18, position: PlayerPosition.offense, photoUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/1e/Peyton_Manning_2015.jpg/220px-Peyton_Manning_2015.jpg'),
-      Player(id: 'p_2', teamId: currentTeamId, firstName: 'Tom', lastName: 'Brady', dorsal: 12, position: PlayerPosition.offense, photoUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c1/Tom_Brady_2021.jpg/220px-Tom_Brady_2021.jpg'),
-      Player(id: 'p_3', teamId: currentTeamId, firstName: 'Ray', lastName: 'Lewis', dorsal: 52, position: PlayerPosition.defense, photoUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/cd/Ray_Lewis_2012.JPG/220px-Ray_Lewis_2012.JPG'),
+      Player(
+        id: 'p_1',
+        teamId: currentTeamId,
+        firstName: 'Peyton',
+        lastName: 'Manning',
+        dorsal: 18,
+        position: PlayerPosition.offense,
+        photoUrl:
+            'https://upload.wikimedia.org/wikipedia/commons/thumb/1/1e/Peyton_Manning_2015.jpg/220px-Peyton_Manning_2015.jpg',
+      ),
+      Player(
+        id: 'p_2',
+        teamId: currentTeamId,
+        firstName: 'Tom',
+        lastName: 'Brady',
+        dorsal: 12,
+        position: PlayerPosition.offense,
+        photoUrl:
+            'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c1/Tom_Brady_2021.jpg/220px-Tom_Brady_2021.jpg',
+      ),
+      Player(
+        id: 'p_3',
+        teamId: currentTeamId,
+        firstName: 'Ray',
+        lastName: 'Lewis',
+        dorsal: 52,
+        position: PlayerPosition.defense,
+        photoUrl:
+            'https://upload.wikimedia.org/wikipedia/commons/thumb/c/cd/Ray_Lewis_2012.JPG/220px-Ray_Lewis_2012.JPG',
+      ),
     ];
     for (var p in fakePlayers) {
       await playerRepo.savePlayer(p);
@@ -76,11 +115,61 @@ class FakeDataGenerator {
 
     // 4. Create fake plays
     final fakePlays = [
-      Play(id: 'pl_1', matchId: 'match_fake_1', phase: PlayPhase.ataque, minute: 5, action: 'PASE', outcome: 'COMPLETO', yardas: 15, points: 0, involvedPlayerIds: ['p_1', 'p_2']),
-      Play(id: 'pl_2', matchId: 'match_fake_1', phase: PlayPhase.ataque, minute: 10, action: 'CARRERA', outcome: 'EXITO', yardas: 8, points: 6, involvedPlayerIds: ['p_1']),
-      Play(id: 'pl_3', matchId: 'match_fake_1', phase: PlayPhase.defensa, minute: 15, action: 'FLAG QUITADO', outcome: 'EXITO', yardas: 0, points: 0, involvedPlayerIds: ['p_3']),
-      Play(id: 'pl_4', matchId: 'match_fake_1', phase: PlayPhase.defensa, minute: 20, action: 'SACK', outcome: 'EXITO', yardas: -5, points: 0, involvedPlayerIds: ['p_3']),
-      Play(id: 'pl_5', matchId: 'match_fake_2', phase: PlayPhase.ataque, minute: 2, action: 'PASE', outcome: 'INTERCEPTADO', yardas: 0, points: 0, involvedPlayerIds: ['p_1']),
+      Play(
+        id: 'pl_1',
+        matchId: 'match_fake_1',
+        phase: PlayPhase.ataque,
+        minute: 5,
+        action: 'PASE',
+        outcome: 'COMPLETO',
+        yardas: 15,
+        points: 0,
+        involvedPlayerIds: ['p_1', 'p_2'],
+      ),
+      Play(
+        id: 'pl_2',
+        matchId: 'match_fake_1',
+        phase: PlayPhase.ataque,
+        minute: 10,
+        action: 'CARRERA',
+        outcome: 'EXITO',
+        yardas: 8,
+        points: 6,
+        involvedPlayerIds: ['p_1'],
+      ),
+      Play(
+        id: 'pl_3',
+        matchId: 'match_fake_1',
+        phase: PlayPhase.defensa,
+        minute: 15,
+        action: 'FLAG QUITADO',
+        outcome: 'EXITO',
+        yardas: 0,
+        points: 0,
+        involvedPlayerIds: ['p_3'],
+      ),
+      Play(
+        id: 'pl_4',
+        matchId: 'match_fake_1',
+        phase: PlayPhase.defensa,
+        minute: 20,
+        action: 'SACK',
+        outcome: 'EXITO',
+        yardas: -5,
+        points: 0,
+        involvedPlayerIds: ['p_3'],
+      ),
+      Play(
+        id: 'pl_5',
+        matchId: 'match_fake_2',
+        phase: PlayPhase.ataque,
+        minute: 2,
+        action: 'PASE',
+        outcome: 'INTERCEPTADO',
+        yardas: 0,
+        points: 0,
+        involvedPlayerIds: ['p_1'],
+      ),
     ];
 
     for (var p in fakePlays) {
