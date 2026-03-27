@@ -30,8 +30,8 @@
 
 ## Phase 6: Upgrades in the CRUD pages[]
 
-- [ ] The Home Screen in the desktop chrome version is humongous and has an uneeded scroll. Fix it to fit everything in the screen.
-- [ ] In Home screen, the last match should be clickable/tappable and take the user to that match´s screen.
+- [x] The Home Screen in the desktop chrome version is humongous and has an uneeded scroll. Fix it to fit everything in the screen.
+- [x] In Home screen, the last match should be clickable/tappable and take the user to that match´s screen.
 
 ## Phase 6.1: Upgrades in the Tousnaments screens[]
 
@@ -39,6 +39,13 @@
 - [ ] In the tournament edition screen, the "Add existing team" button color is hard to read, change it to a more visible color.
 - [ ] In the tournament edition screen, apart form editing the params and teams of the tournaments, there should also be a list of the matches of the tournament. Each match can be selected (then taken to its corresponding match editing screen) or deleted (which would delete the match and all its related data, but there should be a confirmation popup before deleting it).
 - [ ] In the tournament edition screen, below the list of matches there should be a selector to add existing matches to the tournament. And a button to add a new match on the fly (i would take to the match creation screen, and once created, add it automatically to the oturnament).
+
+## Phase 6.2: Upgrades in the Teams screens[]
+
+- [ ] In the Edit Team screen, the "manage players" button is hard to see, change its color.
+- [ ] In the Edit Team Screen, teams should have some optional values, like "badge" or "short name". Add a way so the user can add an image as a badge for the team.
+- [ ] In the Edit Team Screen, we should make it clear if that team is the user team. Maybe with a small icon or color.
+- [ ] In the Teams screen, we should allow the user to change his team easily (with a selector or a button for each team "make it my team"). A user can only have one team, so When selecting a new team for the user, the previous one ceases to be its team.
 
 ## Phase 7: Home & Global Navigation [/]
 

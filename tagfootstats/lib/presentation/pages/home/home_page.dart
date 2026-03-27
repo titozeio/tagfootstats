@@ -23,15 +23,23 @@ class HomePage extends StatelessWidget {
             return const Center(child: CircularProgressIndicator());
           }
 
-          return SingleChildScrollView(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                _buildLastMatchResult(context, state),
-                const SizedBox(height: 32),
-                _buildMainMenu(context),
-              ],
+          final isDesktop = MediaQuery.of(context).size.width > 700;
+
+          return Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 1000),
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    _buildLastMatchResult(context, state),
+                    const SizedBox(height: 32),
+                    _buildMainMenu(context, isDesktop),
+                  ],
+                ),
+              ),
             ),
           );
         },
@@ -47,8 +55,10 @@ class HomePage extends StatelessWidget {
           return const SizedBox.shrink();
         }
 
-        final lastMatch =
-            snapshot.data!.first; // Simple for now, should be sorted
+        // Sort matches by date (assuming id or some field indicates chronological order, 
+        // ideally matches have a date field, let's assume we take the first for now as per current logic
+        // but adding importance to it being interactive)
+        final lastMatch = snapshot.data!.first;
 
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -58,21 +68,25 @@ class HomePage extends StatelessWidget {
               style: TextStyle(fontWeight: FontWeight.w900, fontSize: 18),
             ),
             const SizedBox(height: 8),
-            MatchSummaryCard(match: lastMatch, ownTeam: state.ownTeam),
+            InkWell(
+              onTap: () => context.push('/match/${lastMatch.id}'),
+              borderRadius: BorderRadius.circular(12),
+              child: MatchSummaryCard(match: lastMatch, ownTeam: state.ownTeam),
+            ),
           ],
         );
       },
     );
   }
 
-  Widget _buildMainMenu(BuildContext context) {
+  Widget _buildMainMenu(BuildContext context, bool isDesktop) {
     return GridView.count(
-      crossAxisCount: 2,
+      crossAxisCount: isDesktop ? 4 : 2,
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       mainAxisSpacing: 16,
       crossAxisSpacing: 16,
-      childAspectRatio: 1.5,
+      childAspectRatio: isDesktop ? 1.2 : 1.5,
       children: [
         _buildMenuButton(
           context,
@@ -95,6 +109,7 @@ class HomePage extends StatelessWidget {
   ) {
     return InkWell(
       onTap: () => context.push(route),
+      borderRadius: BorderRadius.circular(12),
       child: Container(
         decoration: BoxDecoration(
           color: AppColors.surfaceDark,
