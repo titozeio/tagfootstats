@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:tagfootstats/core/theme/app_colors.dart';
 import 'package:tagfootstats/domain/entities/play.dart';
+import 'package:tagfootstats/domain/entities/player.dart';
 import 'package:tagfootstats/domain/entities/match.dart' as entity;
 import 'package:tagfootstats/domain/repositories/match_repository.dart';
 import 'package:tagfootstats/domain/repositories/play_repository.dart';
@@ -65,6 +66,7 @@ class MatchView extends StatelessWidget {
                       awayTeamName: state.match.opponentId,
                       homeScore: state.match.homeScore,
                       awayScore: state.match.awayScore,
+                      timeLeft: _calculateTimeLeft(state.plays),
                     ),
                     Expanded(
                       child: isDesktop
@@ -130,15 +132,23 @@ class MatchView extends StatelessWidget {
     }
   }
 
+  String _calculateTimeLeft(List<Play> plays) {
+    if (plays.isEmpty) return '00:00';
+    final maxMin =
+        plays.map((p) => p.minute).reduce((a, b) => a > b ? a : b);
+    return '${maxMin.toString().padLeft(2, '0')}:00';
+  }
+
   Widget _buildMobileLayout(BuildContext context, MatchLoaded state) {
     return DefaultTabController(
-      length: 2,
+      length: 3,
       child: Column(
         children: [
           const TabBar(
             tabs: [
               Tab(icon: Icon(Icons.sports_football), text: 'ATAQUE'),
               Tab(icon: Icon(Icons.shield), text: 'DEFENSA'),
+              Tab(icon: Icon(Icons.list), text: 'JUGADAS'),
             ],
             indicatorColor: AppColors.nflGold,
             labelColor: AppColors.nflGold,
@@ -149,6 +159,7 @@ class MatchView extends StatelessWidget {
               children: [
                 _buildPhasePanel(context, state, PlayPhase.ataque),
                 _buildPhasePanel(context, state, PlayPhase.defensa),
+                _buildPlayList(state),
               ],
             ),
           ),
@@ -217,7 +228,9 @@ class MatchView extends StatelessWidget {
     return PlayEntryForm(
       phase: phase,
       players: state.players,
-      onPlayAdded: (action, outcome, points, yardas, players) {
+      homeScore: state.match.homeScore,
+      awayScore: state.match.awayScore,
+      onPlayAdded: (action, outcome, points, yardas, minute, down, players) {
         _onPlayAdded(
           context,
           state.match.id,
@@ -226,6 +239,8 @@ class MatchView extends StatelessWidget {
           outcome,
           points,
           yardas,
+          minute,
+          down,
           players,
         );
       },
@@ -233,24 +248,68 @@ class MatchView extends StatelessWidget {
   }
 
   Widget _buildPlayList(MatchLoaded state) {
+    // Sort plays by minute chronologically as requested
+    final sortedPlays = List<Play>.from(state.plays)
+      ..sort((a, b) => a.minute.compareTo(b.minute));
+
     return ListView.builder(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      itemCount: state.plays.length,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      itemCount: sortedPlays.length,
       itemBuilder: (context, index) {
-        final play = state.plays[index];
-        return ListTile(
-          leading: CircleAvatar(
-            backgroundColor: play.phase == PlayPhase.ataque
-                ? AppColors.primaryBlue
-                : AppColors.accentRed,
-            child: Text(
-              play.points.toString(),
-              style: const TextStyle(color: Colors.white),
+        final play = sortedPlays[index];
+        final isOffense = play.phase == PlayPhase.ataque;
+
+        return Card(
+          margin: const EdgeInsets.only(bottom: 8),
+          color: AppColors.surfaceDark,
+          child: ListTile(
+            leading: CircleAvatar(
+              backgroundColor:
+                  isOffense ? AppColors.primaryBlue : AppColors.accentRed,
+              child: Text(
+                play.points > 0 ? '+${play.points}' : '0',
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 12,
+                ),
+              ),
             ),
-          ),
-          title: Text('${play.action} - ${play.outcome}'),
-          subtitle: Text(
-            '${play.phase.name.toUpperCase()} | MIN: ${play.minute}',
+            title: Text(
+              '${play.action} - ${play.outcome}'.toUpperCase(),
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+            ),
+            subtitle: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'MIN: ${play.minute} | ${play.down != null ? "${play.down}º DOWN | " : ""}${play.yardas} YDS | ${isOffense ? "ATAQUE" : "DEFENSA"}',
+                  style: const TextStyle(fontSize: 11, color: Colors.grey),
+                ),
+                if (play.involvedPlayerIds.isNotEmpty)
+                  FutureBuilder(
+                    future: Future.wait(play.involvedPlayerIds.map(
+                      (id) => context.read<PlayerRepository>().getPlayerById(id),
+                    )),
+                    builder: (context, snapshot) {
+                      if (snapshot.hasData) {
+                        final players = snapshot.data!.whereType<Player>().toList();
+                        return Text(
+                          'JUGADORES: ${players.map((p) => "#${p.dorsal}").join(" ")}',
+                          style: const TextStyle(
+                            fontSize: 11,
+                            color: AppColors.nflGold,
+                          ),
+                        );
+                      }
+                      return const SizedBox.shrink();
+                    },
+                  ),
+              ],
+            ),
+            trailing: play.points > 0
+                ? const Icon(Icons.stars, color: AppColors.nflGold)
+                : null,
           ),
         );
       },
@@ -265,13 +324,16 @@ class MatchView extends StatelessWidget {
     String outcome,
     int points,
     int yardas,
+    int minute,
+    int? down,
     List<String> players,
   ) {
     final play = Play(
       id: DateTime.now().millisecondsSinceEpoch.toString(),
       matchId: matchId,
       phase: phase,
-      minute: 0,
+      minute: minute,
+      down: down,
       action: action,
       outcome: outcome,
       points: points,

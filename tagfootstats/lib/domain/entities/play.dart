@@ -11,6 +11,7 @@ class Play extends Equatable {
   final String outcome;
   final int points;
   final int yardas;
+  final int? down;
   final List<String> involvedPlayerIds;
 
   const Play({
@@ -22,6 +23,7 @@ class Play extends Equatable {
     required this.outcome,
     this.points = 0,
     this.yardas = 0,
+    this.down,
     this.involvedPlayerIds = const [],
   });
 
@@ -35,6 +37,7 @@ class Play extends Equatable {
         outcome,
         points,
         yardas,
+        down,
         involvedPlayerIds,
       ];
 }

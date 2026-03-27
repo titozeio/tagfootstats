@@ -15,6 +15,7 @@ PlayModel _$PlayModelFromJson(Map<String, dynamic> json) => PlayModel(
   outcome: json['outcome'] as String,
   points: (json['points'] as num?)?.toInt() ?? 0,
   yardas: (json['yardas'] as num?)?.toInt() ?? 0,
+  down: (json['down'] as num?)?.toInt(),
   involvedPlayerIds:
       (json['involvedPlayerIds'] as List<dynamic>?)
           ?.map((e) => e as String)
@@ -31,6 +32,7 @@ Map<String, dynamic> _$PlayModelToJson(PlayModel instance) => <String, dynamic>{
   'outcome': instance.outcome,
   'points': instance.points,
   'yardas': instance.yardas,
+  'down': instance.down,
   'involvedPlayerIds': instance.involvedPlayerIds,
 };
 

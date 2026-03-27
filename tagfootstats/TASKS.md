@@ -41,20 +41,31 @@
 - [x] In the tournament edition screen, apart form editing the params and teams of the tournaments, there should also be a list of the matches of the tournament. Each match can be selected (then taken to its corresponding match editing screen) or deleted (which would delete the match and all its related data, but there should be a confirmation popup before deleting it).
 - [x] In the tournament edition screen, below the list of matches there should be a selector to add existing matches to the tournament. And a button to add a new match on the fly (i would take to the match creation screen, and once created, add it automatically to the oturnament).
 
-## Phase 6.2: Upgrades in the Teams screens[]
+## Phase 6.2: Upgrades in the Match Recording screen [x]
+
+- [x] En el registro del partido no aparecen las jugadas que se han ido registrando. Añade una lista de las jugadas que se han ido registrando por orden cronológico (de menor a mayor minuto). Debería mostrar un nresumen tipo: minuto de la jugada, ficha del jugador (si se especificó), tipo de jugada (iataque defensa), jugada en sí (pase, carrera, sack, etc.), yardas ganadas/perdidas, y si fue exitosa o no,... toda la info, vaya.
+- [x] En el registro del partido, cuando se está registrando una jugada, no se muestra el resultado parcial del partido (p.e. 14-7). Añádelo en algún sitio visible.
+- [x] En el registro del partido, cuando se está registrando una jugada, debe poder selecccionarse el minuto en el que se produjo. El tiempo del marcador debe actualizarse con el minutaje más avanzaado de todas las jugadas registradas (se puedden registrar jugadas de forma desordenada, no hace falta que sea en orden cronológico).
+- [x] Actua como un experto en tag football, revisa las posibles jugadas que se pueden registrar ahora mimso y los puntos que conceden, y cómo las registramos, y dame consejo por si necesitamos modificarlas, añadir parámetros, faltan tipos de jugadas, etc.
+
+## Phase 6.2.1: Expert Tag Football Enhancements [x]
+
+- [x] Añadir jugada de **SAFETY (2 puntos)** para la defensa.
+- [x] Permitir elegir entre **1 punto (yarda 5)** o **2 puntos (yarda 10)** para los Puntos Extra (PAT).
+- [x] Añadir selector de **Resultado de Pase** (Completo, Incompleto, Interceptado) para mejorar las estadísticas del QB.
+- [x] Implementar el rastreo de **Down** (1ª, 2ª, 3ª o 4ª oportunidad) para dar contexto a cada jugada.
+- [x] Permitir seleccionar **múltiples jugadores** en una jugada (ej. QB + Receptor en un pase).
+
+## Phase 6.3: Upgrades in the Teams screens[]
 
 - [ ] In the Edit Team screen, the "manage players" button is hard to see, change its color.
 - [ ] In the Edit Team Screen, teams should have some optional values, like "badge" or "short name". Add a way so the user can add an image as a badge for the team.
 - [ ] In the Edit Team Screen, we should make it clear if that team is the user team. Maybe with a small icon or color.
 - [ ] In the Teams screen, we should allow the user to change his team easily (with a selector or a button for each team "make it my team"). A user can only have one team, so When selecting a new team for the user, the previous one ceases to be its team.
 
-## Phase 6.3: Upgrades in the Players screens[]
+## Phase 6.4: Upgrades in the Players screens[]
 
 - [ ] In the Edit player screen, we should enable a way to upload a photo of the player, and using that photo in the player card.
-
-## Phase 6.4: Upgrades in the Match Recording screen[]
-
-- [ ]
 
 ## Phase 7: Home & Global Navigation [/]
 
@@ -64,7 +75,13 @@
   - [x] Navigation menu with icon buttons
 - [ ] Implement Global Navigation (AppRouter/BottomNavBar)
 
-## Phase 8: Verification & Launch [ ]
+## Phase 8: Advanced stats [ ]
+
+- [ ] Add a new button in the Home Screen: Advanced stats. This button should take the user to the advanced stats screen.
+- [ ] In the advanced stats screen, we should show the advanced stats of the user's team: Act as an expert in tag football and decide what advanced stats to show.
+- [ ] In the advanced stats screen, add abutton to be stats for the players of the user´s team. This should open a different table of stats for each player´s stats.Act as an expert in tag football and decide what advanced stats to show.
+
+## Phase 9: Verification & Launch [ ]
 
 - [ ] Integration Testing
 - [ ] Final UI Polish (Animations & Feedback)

@@ -11,15 +11,21 @@ class PlayEntryForm extends StatefulWidget {
     String outcome,
     int points,
     int yardas,
+    int minute,
+    int? down,
     List<String> players,
   )
   onPlayAdded;
+  final int homeScore;
+  final int awayScore;
 
   const PlayEntryForm({
     super.key,
     required this.phase,
     this.players = const [],
     required this.onPlayAdded,
+    this.homeScore = 0,
+    this.awayScore = 0,
   });
 
   @override
@@ -31,7 +37,11 @@ class _PlayEntryFormState extends State<PlayEntryForm> {
   String? _selectedAction;
   int _yards = 0;
   bool _isTouchdown = false;
-  bool _isExtraPoint = false;
+  int _extraPointValue = 0; // 0, 1, 2
+  int _minute = 0;
+  int? _selectedDown;
+  String? _selectedPassOutcome;
+  String? _selectedPlayer2Id;
 
   @override
   void didUpdateWidget(PlayEntryForm oldWidget) {
@@ -47,7 +57,11 @@ class _PlayEntryFormState extends State<PlayEntryForm> {
       _selectedAction = null;
       _yards = 0;
       _isTouchdown = false;
-      _isExtraPoint = false;
+      _extraPointValue = 0;
+      _minute = 0;
+      _selectedDown = null;
+      _selectedPassOutcome = null;
+      _selectedPlayer2Id = null;
     });
   }
 
@@ -68,7 +82,15 @@ class _PlayEntryFormState extends State<PlayEntryForm> {
             const SizedBox(height: 24),
             _buildPlayerSelection(),
             const SizedBox(height: 20),
+            _buildMinuteSelector(),
+            const SizedBox(height: 20),
+            _buildDownSelector(),
+            const SizedBox(height: 20),
             _buildActionGrid(),
+            if (_selectedAction == 'PASE') ...[
+              const SizedBox(height: 12),
+              _buildPassOutcomeSelector(),
+            ],
             const SizedBox(height: 20),
             _buildYardageSelector(),
             const SizedBox(height: 24),
@@ -104,6 +126,130 @@ class _PlayEntryFormState extends State<PlayEntryForm> {
             letterSpacing: 1,
           ),
         ),
+        const Spacer(),
+        Text(
+          '${widget.homeScore} - ${widget.awayScore}',
+          style: const TextStyle(
+            fontWeight: FontWeight.w900,
+            fontSize: 20,
+            color: AppColors.nflGold,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDownSelector() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'OPORTUNIDAD (DOWN)',
+          style: TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.bold,
+            color: Colors.grey,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [1, 2, 3, 4].map((d) {
+            final isSelected = _selectedDown == d;
+            return InkWell(
+              onTap: () => setState(() => _selectedDown = d),
+              child: Container(
+                width: 60,
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                decoration: BoxDecoration(
+                  color: isSelected ? AppColors.nflGold : Colors.black26,
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(
+                    color: isSelected ? AppColors.nflGold : AppColors.glassBorder,
+                  ),
+                ),
+                child: Center(
+                  child: Text(
+                    '$dº',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: isSelected ? Colors.black : Colors.white,
+                    ),
+                  ),
+                ),
+              ),
+            );
+          }).toList(),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildPassOutcomeSelector() {
+    final options = ['COMPLETO', 'INCOMPLETO', 'INTERCEPTADO'];
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: options.map((opt) {
+        final isSelected = _selectedPassOutcome == opt;
+        return InkWell(
+          onTap: () => setState(() => _selectedPassOutcome = opt),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            decoration: BoxDecoration(
+              color: isSelected ? AppColors.nflGold : Colors.transparent,
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(
+                color: isSelected ? AppColors.nflGold : AppColors.glassBorder,
+              ),
+            ),
+            child: Text(
+              opt,
+              style: TextStyle(
+                fontSize: 10,
+                fontWeight: FontWeight.bold,
+                color: isSelected ? Colors.black : Colors.grey,
+              ),
+            ),
+          ),
+        );
+      }).toList(),
+    );
+  }
+
+  Widget _buildMinuteSelector() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            const Text(
+              'MINUTO DE LA JUGADA',
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
+                color: Colors.grey,
+              ),
+            ),
+            Text(
+              'MIN: $_minute',
+              style: const TextStyle(
+                fontWeight: FontWeight.w900,
+                color: AppColors.nflGold,
+              ),
+            ),
+          ],
+        ),
+        Slider(
+          value: _minute.toDouble(),
+          min: 0,
+          max: 60,
+          divisions: 60,
+          activeColor: AppColors.nflGold,
+          inactiveColor: Colors.white10,
+          label: _minute.toString(),
+          onChanged: (val) => setState(() => _minute = val.toInt()),
+        ),
       ],
     );
   }
@@ -113,7 +259,7 @@ class _PlayEntryFormState extends State<PlayEntryForm> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Text(
-          'JUGADOR INVOLUCRADO',
+          'JUGADORES INVOLUCRADOS',
           style: TextStyle(
             fontSize: 12,
             fontWeight: FontWeight.bold,
@@ -121,36 +267,65 @@ class _PlayEntryFormState extends State<PlayEntryForm> {
           ),
         ),
         const SizedBox(height: 8),
-        DropdownButtonFormField<String>(
-          value: _selectedPlayerId,
-          decoration: InputDecoration(
-            filled: true,
-            fillColor: Colors.black12,
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide.none,
-            ),
-            prefixIcon: const Icon(Icons.person, color: AppColors.nflGold),
-          ),
-          items: widget.players
-              .map(
-                (p) => DropdownMenuItem(
-                  value: p.id,
-                  child: Text('#${p.dorsal} ${p.firstName} ${p.lastName}'),
+        Row(
+          children: [
+            Expanded(
+              child: DropdownButtonFormField<String>(
+                value: _selectedPlayerId,
+                decoration: _inputDecoration(
+                  _selectedAction == 'PASE' ? 'QB' : 'JUGADOR',
                 ),
-              )
-              .toList(),
-          onChanged: (val) => setState(() => _selectedPlayerId = val),
-          hint: const Text('Selecciona un jugador'),
+                items: _playerItems(),
+                onChanged: (val) => setState(() => _selectedPlayerId = val),
+                hint: const Text('Jugador 1'),
+              ),
+            ),
+            if (_selectedAction == 'PASE') ...[
+              const SizedBox(width: 12),
+              Expanded(
+                child: DropdownButtonFormField<String>(
+                  value: _selectedPlayer2Id,
+                  decoration: _inputDecoration('RECEPTOR'),
+                  items: _playerItems(),
+                  onChanged: (val) => setState(() => _selectedPlayer2Id = val),
+                  hint: const Text('Jugador 2'),
+                ),
+              ),
+            ],
+          ],
         ),
       ],
     );
   }
 
+  InputDecoration _inputDecoration(String label) {
+    return InputDecoration(
+      labelText: label,
+      labelStyle: const TextStyle(fontSize: 10, color: Colors.grey),
+      filled: true,
+      fillColor: Colors.black12,
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide.none,
+      ),
+    );
+  }
+
+  List<DropdownMenuItem<String>> _playerItems() {
+    return widget.players
+        .map(
+          (p) => DropdownMenuItem(
+            value: p.id,
+            child: Text('#${p.dorsal} ${p.firstName}'),
+          ),
+        )
+        .toList();
+  }
+
   Widget _buildActionGrid() {
     final actions = widget.phase == PlayPhase.ataque
         ? ['PASE', 'CARRERA', 'SACK', 'FUMBLE']
-        : ['FLAG QUITADO', 'SACK', 'INTERCEPCIÓN', 'BLITZER'];
+        : ['FLAG QUITADO', 'SACK', 'INTERCEPCIÓN', 'BATTED', 'SAFETY'];
 
     return Wrap(
       spacing: 12,
@@ -226,24 +401,51 @@ class _PlayEntryFormState extends State<PlayEntryForm> {
             _isTouchdown,
             () => setState(() {
               _isTouchdown = !_isTouchdown;
-              if (_isTouchdown) _isExtraPoint = false;
+              if (_isTouchdown) _extraPointValue = 0;
             }),
             Icons.star,
           ),
         ),
         const SizedBox(width: 12),
-        Expanded(
-          child: _buildToggleButton(
-            'PTO EXTRA',
-            _isExtraPoint,
-            () => setState(() {
-              _isExtraPoint = !_isExtraPoint;
-              if (_isExtraPoint) _isTouchdown = false;
-            }),
-            Icons.add_circle,
-          ),
-        ),
+        _buildExtraPointSelector(),
       ],
+    );
+  }
+
+  Widget _buildExtraPointSelector() {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.black12,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.glassBorder),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [0, 1, 2].map((v) {
+          final isSelected = _extraPointValue == v;
+          return InkWell(
+            onTap: () => setState(() {
+              _extraPointValue = v;
+              if (v > 0) _isTouchdown = false;
+            }),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              decoration: BoxDecoration(
+                color: isSelected ? AppColors.nflGold : Colors.transparent,
+                borderRadius: BorderRadius.circular(11),
+              ),
+              child: Text(
+                v == 0 ? 'NO PAT' : '${v}PT',
+                style: TextStyle(
+                  fontSize: 10,
+                  fontWeight: FontWeight.bold,
+                  color: isSelected ? Colors.black : Colors.grey,
+                ),
+              ),
+            ),
+          );
+        }).toList(),
+      ),
     );
   }
 
@@ -300,17 +502,30 @@ class _PlayEntryFormState extends State<PlayEntryForm> {
                 points = 6;
                 outcome = 'TOUCHDOWN';
               }
-              if (_isExtraPoint) {
-                points = 1; // Default
-                outcome = 'PUNTO EXTRA';
+              if (_extraPointValue > 0) {
+                points = _extraPointValue;
+                outcome = 'PAT ${_extraPointValue}PT';
               }
+              if (_selectedAction == 'SAFETY') {
+                points = 2;
+                outcome = 'SAFETY';
+              }
+              if (_selectedAction == 'PASE' && _selectedPassOutcome != null) {
+                outcome = 'PASE $_selectedPassOutcome';
+              }
+
+              final playerIds = <String>[];
+              if (_selectedPlayerId != null) playerIds.add(_selectedPlayerId!);
+              if (_selectedPlayer2Id != null) playerIds.add(_selectedPlayer2Id!);
 
               widget.onPlayAdded(
                 _selectedAction!,
                 outcome,
                 points,
                 _yards,
-                _selectedPlayerId != null ? [_selectedPlayerId!] : [],
+                _minute,
+                _selectedDown,
+                playerIds,
               );
               _resetForm();
             }

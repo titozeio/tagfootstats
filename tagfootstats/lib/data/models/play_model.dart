@@ -14,6 +14,7 @@ class PlayModel extends Play {
     required super.outcome,
     super.points = 0,
     super.yardas = 0,
+    super.down,
     super.involvedPlayerIds = const [],
   });
 
@@ -32,6 +33,7 @@ class PlayModel extends Play {
       outcome: entity.outcome,
       points: entity.points,
       yardas: entity.yardas,
+      down: entity.down,
       involvedPlayerIds: entity.involvedPlayerIds,
     );
   }
