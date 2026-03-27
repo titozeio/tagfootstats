@@ -33,6 +33,11 @@ class _MatchFormPageState extends State<MatchFormPage> {
 
   bool _isSaving = false;
   List<Team> _allTeams = [];
+  List<Tournament> _allTournaments = [];
+  Tournament? _selectedTournament;
+  bool _isAddingNewTeam = false;
+  String _selectedPhase = 'Final';
+  bool _isCustomPhase = false;
 
   @override
   void initState() {
@@ -51,18 +56,46 @@ class _MatchFormPageState extends State<MatchFormPage> {
     } else if (widget.tournamentId != null) {
       _selectedTournamentId = widget.tournamentId;
     }
+    _phaseController.text = _selectedPhase;
 
-    _loadTeams();
+    _loadInitialData();
   }
 
-  Future<void> _loadTeams() async {
+  Future<void> _loadInitialData() async {
     try {
       final teams = await context.read<TeamRepository>().getTeams();
-      if (mounted) setState(() => _allTeams = teams);
+      final tournaments =
+          await context.read<TournamentRepository>().getTournaments();
+
+      if (mounted) {
+        setState(() {
+          _allTeams = teams;
+          _allTournaments = tournaments;
+
+          if (_selectedTournamentId == null && tournaments.isNotEmpty) {
+            // Find an "open" tournament (not ended) or the latest one
+            final now = DateTime.now();
+            final active = tournaments.where((t) => t.endDate.isAfter(now));
+            if (active.isNotEmpty) {
+              _selectedTournamentId = active.first.id;
+              _selectedTournament = active.first;
+            } else {
+              _selectedTournamentId = tournaments.first.id;
+              _selectedTournament = tournaments.first;
+            }
+          } else if (_selectedTournamentId != null) {
+            _selectedTournament = tournaments.firstWhere(
+              (t) => t.id == _selectedTournamentId,
+            );
+          }
+        });
+      }
     } catch (e) {
-      debugPrint('Error loading teams: $e');
+      debugPrint('Error loading data: $e');
     }
   }
+
+
 
   @override
   void dispose() {
@@ -92,16 +125,9 @@ class _MatchFormPageState extends State<MatchFormPage> {
         _selectedTime.minute,
       );
 
-      final opponentName = _opponentController.text.trim();
+      String opponentName = _opponentController.text.trim();
 
-      // 1. Resolve Opponent ID (search existing or create new)
-      final existingTeam = _allTeams.firstWhere(
-        (t) => t.name.toLowerCase() == opponentName.toLowerCase(),
-        orElse: () => Team(id: '', name: opponentName),
-      );
-
-      if (existingTeam.id.isEmpty) {
-        // Create new team entry for the opponent
+      if (_isAddingNewTeam && opponentName.isNotEmpty) {
         final newTeamId = DateTime.now().millisecondsSinceEpoch.toString();
         final newTeam = Team(
           id: newTeamId,
@@ -109,10 +135,7 @@ class _MatchFormPageState extends State<MatchFormPage> {
           logoUrl: '',
           isOwnTeam: false,
         );
-        await context
-            .read<TeamRepository>()
-            .saveTeam(newTeam)
-            .timeout(const Duration(seconds: 10));
+        await context.read<TeamRepository>().saveTeam(newTeam);
       }
 
       final match = entity.Match(
@@ -123,8 +146,14 @@ class _MatchFormPageState extends State<MatchFormPage> {
         opponentId: opponentName,
         dateTime: finalDateTime,
         locationType: _locationType,
-        matchday: int.tryParse(_matchdayController.text),
-        phase: _phaseController.text.isNotEmpty ? _phaseController.text : null,
+        matchday:
+            (_selectedTournament?.type == TournamentType.liga)
+                ? int.tryParse(_matchdayController.text)
+                : null,
+        phase:
+            (_selectedTournament?.type == TournamentType.copa)
+                ? (_isCustomPhase ? _phaseController.text : _selectedPhase)
+                : null,
         homeScore: widget.match?.homeScore ?? 0,
         awayScore: widget.match?.awayScore ?? 0,
       );
@@ -162,34 +191,13 @@ class _MatchFormPageState extends State<MatchFormPage> {
             children: [
               _buildTournamentDropdown(),
               const SizedBox(height: 20),
-              _buildOpponentAutocomplete(),
+              _buildOpponentSelector(),
               const SizedBox(height: 20),
               _buildLocationTypeSelector(),
               const SizedBox(height: 20),
               _buildDateTimePicker(context),
               const SizedBox(height: 20),
-              Row(
-                children: [
-                  Expanded(
-                    child: TextFormField(
-                      controller: _matchdayController,
-                      keyboardType: TextInputType.number,
-                      decoration: const InputDecoration(
-                        labelText: 'JORNADA #',
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: TextFormField(
-                      controller: _phaseController,
-                      decoration: const InputDecoration(
-                        labelText: 'FASE (ej. Final)',
-                      ),
-                    ),
-                  ),
-                ],
-              ),
+              _buildJornadaOrFase(),
               const SizedBox(height: 48),
               ElevatedButton(
                 onPressed: _isSaving ? null : _save,
@@ -225,60 +233,144 @@ class _MatchFormPageState extends State<MatchFormPage> {
     );
   }
 
-  Widget _buildOpponentAutocomplete() {
-    return Autocomplete<Team>(
-      displayStringForOption: (Team option) => option.name,
-      initialValue: TextEditingValue(text: _opponentController.text),
-      optionsBuilder: (TextEditingValue textEditingValue) {
-        if (textEditingValue.text == '') {
-          return const Iterable<Team>.empty();
-        }
-        return _allTeams.where((Team option) {
-          return option.name.toLowerCase().contains(
-            textEditingValue.text.toLowerCase(),
-          );
-        });
-      },
-      onSelected: (Team selection) {
-        _opponentController.text = selection.name;
-      },
-      fieldViewBuilder: (context, controller, focusNode, onFieldSubmitted) {
-        // Sync our controller with the autocomplete controller
-        controller.addListener(() {
-          _opponentController.text = controller.text;
-        });
-        return TextFormField(
-          controller: controller,
-          focusNode: focusNode,
+  Widget _buildOpponentSelector() {
+    final teams = _allTeams.where((t) => !t.isOwnTeam).toList();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        DropdownButtonFormField<String>(
+          value: _isAddingNewTeam ? 'NEW' : (_opponentController.text.isEmpty ? null : _opponentController.text),
           decoration: const InputDecoration(
-            labelText: 'NOMBRE DEL OPONENTE',
+            labelText: 'EQUIPO OPONENTE',
             prefixIcon: Icon(Icons.shield),
           ),
-          validator: (v) => v!.isEmpty ? 'Requerido' : null,
-        );
-      },
+          items: [
+            ...teams.map(
+              (t) => DropdownMenuItem(value: t.name, child: Text(t.name)),
+            ),
+            const DropdownMenuItem(
+              value: 'NEW',
+              child: Text(
+                '+ Añadir nuevo equipo',
+                style: TextStyle(color: AppColors.nflGold),
+              ),
+            ),
+          ],
+          onChanged: (val) {
+            setState(() {
+              if (val == 'NEW') {
+                _isAddingNewTeam = true;
+                _opponentController.clear();
+              } else {
+                _isAddingNewTeam = false;
+                _opponentController.text = val ?? '';
+              }
+            });
+          },
+          validator: (v) => (v == null && !_isAddingNewTeam) ? 'Requerido' : null,
+        ),
+        if (_isAddingNewTeam) ...[
+          const SizedBox(height: 12),
+          TextFormField(
+            controller: _opponentController,
+            decoration: const InputDecoration(
+              labelText: 'NOMBRE DEL NUEVO EQUIPO',
+              hintText: 'Ej: Sharks Torrejón',
+            ),
+            validator: (v) => v!.isEmpty ? 'Requerido' : null,
+            autofocus: true,
+          ),
+        ],
+      ],
     );
   }
 
-  Widget _buildTournamentDropdown() {
-    return FutureBuilder<List<Tournament>>(
-      future: context.read<TournamentRepository>().getTournaments(),
-      builder: (context, snapshot) {
-        final tournaments = snapshot.data ?? [];
-        return DropdownButtonFormField<String>(
-          value: _selectedTournamentId,
-          decoration: const InputDecoration(
-            labelText: 'TORNEO',
-            prefixIcon: Icon(Icons.emoji_events),
+  Widget _buildJornadaOrFase() {
+    if (_selectedTournament == null) return const SizedBox.shrink();
+
+    if (_selectedTournament!.type == TournamentType.liga) {
+      return Row(
+        children: [
+          const Text('JORNADA: ', style: TextStyle(fontWeight: FontWeight.bold)),
+          const SizedBox(width: 12),
+          Expanded(
+            child: DropdownButtonFormField<int>(
+              value: int.tryParse(_matchdayController.text) ?? 1,
+              decoration: const InputDecoration(border: OutlineInputBorder()),
+              items: List.generate(
+                30,
+                (i) => DropdownMenuItem(value: i + 1, child: Text('${i + 1}')),
+              ),
+              onChanged: (val) => setState(() => _matchdayController.text = val.toString()),
+            ),
           ),
-          items: tournaments
-              .map((t) => DropdownMenuItem(value: t.id, child: Text(t.name)))
-              .toList(),
-          onChanged: (val) => setState(() => _selectedTournamentId = val),
-          hint: const Text('Seleccionar Torneo'),
-          validator: (v) => v == null ? 'Requerido' : null,
-        );
+        ],
+      );
+    } else {
+      final phases = [
+        'Final',
+        'Semifinal',
+        'Cuartos',
+        'Octavos',
+        'Liguilla',
+        'Otros',
+      ];
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text('FASE DEL TORNEO: ', style: TextStyle(fontWeight: FontWeight.bold)),
+          const SizedBox(height: 8),
+          DropdownButtonFormField<String>(
+            value: _isCustomPhase ? 'Otros' : _selectedPhase,
+            decoration: const InputDecoration(border: OutlineInputBorder()),
+            items: phases.map((p) => DropdownMenuItem(value: p, child: Text(p))).toList(),
+            onChanged: (val) {
+              setState(() {
+                if (val == 'Otros') {
+                  _isCustomPhase = true;
+                } else {
+                  _isCustomPhase = false;
+                  _selectedPhase = val!;
+                  _phaseController.text = val;
+                }
+              });
+            },
+          ),
+          if (_isCustomPhase) ...[
+            const SizedBox(height: 12),
+            TextFormField(
+              controller: _phaseController,
+              decoration: const InputDecoration(
+                labelText: 'ESPECIFICA LA FASE',
+                border: OutlineInputBorder(),
+              ),
+              validator: (v) => v!.isEmpty ? 'Requerido' : null,
+            ),
+          ],
+        ],
+      );
+    }
+  }
+
+  Widget _buildTournamentDropdown() {
+    return DropdownButtonFormField<String>(
+      value: _selectedTournamentId,
+      decoration: const InputDecoration(
+        labelText: 'TORNEO',
+        prefixIcon: Icon(Icons.emoji_events),
+      ),
+      items: _allTournaments
+          .map((t) => DropdownMenuItem(value: t.id, child: Text(t.name)))
+          .toList(),
+      onChanged: (val) {
+        setState(() {
+          _selectedTournamentId = val;
+          _selectedTournament = _allTournaments.firstWhere((t) => t.id == val);
+        });
       },
+      hint: const Text('Seleccionar Torneo'),
+      validator: (v) => v == null ? 'Requerido' : null,
     );
   }
 
@@ -321,7 +413,7 @@ class _MatchFormPageState extends State<MatchFormPage> {
     return Row(
       children: [
         Expanded(
-          child: OutlinedButton.icon(
+          child: ElevatedButton.icon(
             onPressed: () async {
               final date = await showDatePicker(
                 context: context,
@@ -331,6 +423,10 @@ class _MatchFormPageState extends State<MatchFormPage> {
               );
               if (date != null) setState(() => _selectedDate = date);
             },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.surfaceDark,
+              foregroundColor: AppColors.nflGold,
+            ),
             icon: const Icon(Icons.calendar_today),
             label: Text(
               '${_selectedDate.day}/${_selectedDate.month}/${_selectedDate.year}',
@@ -339,7 +435,7 @@ class _MatchFormPageState extends State<MatchFormPage> {
         ),
         const SizedBox(width: 16),
         Expanded(
-          child: OutlinedButton.icon(
+          child: ElevatedButton.icon(
             onPressed: () async {
               final time = await showTimePicker(
                 context: context,
@@ -347,6 +443,10 @@ class _MatchFormPageState extends State<MatchFormPage> {
               );
               if (time != null) setState(() => _selectedTime = time);
             },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.surfaceDark,
+              foregroundColor: AppColors.nflGold,
+            ),
             icon: const Icon(Icons.access_time),
             label: Text(_selectedTime.format(context)),
           ),

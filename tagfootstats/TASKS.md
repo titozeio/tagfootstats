@@ -56,7 +56,16 @@
 - [x] Implementar el rastreo de **Down** (1ª, 2ª, 3ª o 4ª oportunidad) para dar contexto a cada jugada.
 - [x] Permitir seleccionar **múltiples jugadores** en una jugada (ej. QB + Receptor en un pase).
 
-## Phase 6.3: Upgrades in the Teams screens[]
+## Phase 6.3: Upgrades in the New Match Screen [x]
+
+- [x] If theres an open tournament, select by default that tournament .
+- [x] Instead of "Nombre del oponente", use a selector to select the opponent team from the user's teams, AND give the option to add a new team on the fly.
+- [x] The date and time selector is not visible due to the color, change it.
+- [x] Dependiendo del tipo de torneo, mostrar "Jornada" (liga) o "fase" (copa).
+- [x] Jornada debería ser un selector de números.
+- [x] Fase debería ser un selector de fases(>Final, Seimifinal, Cuartos, Octavos, liguilla, y otros que habilitaría un campo de texto para añadir una jornada custom).
+
+## Phase 6.4: Upgrades in the Teams screens[]
 
 - [ ] In the Edit Team screen, the "manage players" button is hard to see, change its color.
 - [ ] In the Edit Team Screen, teams should have some optional values, like "badge" or "short name". Add a way so the user can add an image as a badge for the team.
