@@ -97,6 +97,18 @@
 - [x] In the advanced stats screen, show team stats: Success Rate, YPP, Completion %, Play Mix.
 - [x] In the advanced stats screen, show player stats: Individual Yards, Points, Ints, Sacks, Pulls/Tackles.
 
+## Phase 8.1: UI/UX Correction & Professionalism [x]
+
+- [x] Fix color contrast issues: High-contrast primary colors (Avoid dark blue on dark backgrounds).
+- [x] Record Design System rules in a persistent document/skill.
+- [x] Upgrade Player Stats Table: Sortable, professional layout, and more expert metrics.
+
+## Phase 8.2: Expert Tag Football Metrics [x]
+
+- [x] Implement Team Metrics: TD Percentage, Turnover Differential, Success Rate.
+- [x] Implement Player Metrics: Share % (Involvement), Indiv Yards, Points.
+- [x] Implement Defensive Metrics: Total Sacks, Interceptions.
+
 ## Phase 9: Verification & Launch [ ]
 
 - [ ] Integration Testing

@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 
 class AppColors {
   // NFL Deep Blue
-  static const Color primaryBlue = Color(0xFF013369);
+  static const Color primaryBlue = Color(0xFF005BD6); // More vibrant NFL Blue
+  static const Color primaryBlueDark = Color(0xFF013369); // Original deep blue
+  static const Color primaryBlueLight = Color(0xFF4285F4); // For highlights
 
   // NFL Red
   static const Color accentRed = Color(0xFFD50A0A);
