@@ -6,4 +6,5 @@ abstract class TeamRepository {
   Future<void> saveTeam(Team team);
   Future<void> deleteTeam(String id);
   Future<Team?> getOwnTeam();
+  Future<void> setAsOwnTeam(String teamId);
 }

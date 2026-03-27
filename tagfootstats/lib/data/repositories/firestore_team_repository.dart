@@ -50,4 +50,26 @@ class FirestoreTeamRepository implements TeamRepository {
     final doc = snapshot.docs.first;
     return TeamModel.fromJson({...doc.data(), 'id': doc.id});
   }
+  @override
+  Future<void> setAsOwnTeam(String teamId) async {
+    final batch = _firestore.batch();
+    
+    // 1. Unset all own teams
+    final currentOwn = await _firestore
+        .collection(_collectionPath)
+        .where('isOwnTeam', isEqualTo: true)
+        .get();
+    
+    for (var doc in currentOwn.docs) {
+      batch.update(doc.reference, {'isOwnTeam': false});
+    }
+    
+    // 2. Set new own team
+    batch.update(
+      _firestore.collection(_collectionPath).doc(teamId),
+      {'isOwnTeam': true},
+    );
+    
+    await batch.commit();
+  }
 }

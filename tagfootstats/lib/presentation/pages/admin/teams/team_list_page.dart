@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:tagfootstats/core/theme/app_colors.dart';
 import 'package:tagfootstats/domain/entities/team.dart';
 import 'package:tagfootstats/domain/repositories/team_repository.dart';
+import 'package:tagfootstats/presentation/bloc/app/app_bloc.dart';
 
 class TeamListPage extends StatelessWidget {
   const TeamListPage({super.key});
@@ -38,25 +39,68 @@ class TeamListPage extends StatelessWidget {
                 margin: const EdgeInsets.only(bottom: 12),
                 child: ListTile(
                   onTap: () => context.push('/teams/${team.id}'),
-                  leading: const CircleAvatar(
-                    backgroundColor: AppColors.primaryBlue,
-                    child: Icon(Icons.group, color: Colors.white),
+                  leading: CircleAvatar(
+                    backgroundColor: team.isOwnTeam
+                        ? AppColors.nflGold
+                        : AppColors.primaryBlue,
+                    backgroundImage: (team.logoUrl != null && team.logoUrl!.isNotEmpty)
+                        ? NetworkImage(team.logoUrl!)
+                        : null,
+                    child: (team.logoUrl == null || team.logoUrl!.isEmpty)
+                        ? Icon(
+                            team.isOwnTeam ? Icons.star : Icons.group,
+                            color: team.isOwnTeam ? Colors.black : Colors.white,
+                          )
+                        : null,
                   ),
-                  title: Text(
-                    team.name.toUpperCase(),
-                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  title: Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          team.name.toUpperCase(),
+                          style: const TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                      if (team.shortName != null && team.shortName!.isNotEmpty)
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: Colors.white10,
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: Text(
+                            team.shortName!,
+                            style: const TextStyle(fontSize: 10, color: Colors.grey),
+                          ),
+                        ),
+                    ],
                   ),
                   subtitle: team.isOwnTeam
                       ? const Text(
-                          'TU EQUIPO',
+                          'EQUIPO PRINCIPAL',
                           style: TextStyle(
                             color: AppColors.nflGold,
                             fontWeight: FontWeight.bold,
                             fontSize: 10,
                           ),
                         )
-                      : null,
-                  trailing: const Icon(Icons.chevron_right),
+                      : const Text('EQUIPO RIVAL', style: TextStyle(fontSize: 10)),
+                  trailing: team.isOwnTeam
+                      ? const Icon(Icons.check_circle, color: AppColors.nflGold)
+                      : IconButton(
+                          icon: const Icon(Icons.star_border, color: Colors.grey),
+                          onPressed: () async {
+                            await context.read<TeamRepository>().setAsOwnTeam(team.id);
+                            // Refresh
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(content: Text('${team.name} ahora es tu equipo')),
+                              );
+                              // Trigger state update if using Bloc, or just force rebuild
+                              context.read<AppBloc>().add(InitializeApp());
+                            }
+                          },
+                        ),
                 ),
               );
             },

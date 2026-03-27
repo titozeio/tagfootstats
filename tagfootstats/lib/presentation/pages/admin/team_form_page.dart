@@ -19,12 +19,19 @@ class TeamFormPage extends StatefulWidget {
 class _TeamFormPageState extends State<TeamFormPage> {
   final _formKey = GlobalKey<FormState>();
   late TextEditingController _nameController;
+  late TextEditingController _shortNameController;
+  late TextEditingController _logoUrlController;
+  bool _isOwnTeam = false;
   bool _isSaving = false;
 
   @override
   void initState() {
     super.initState();
     _nameController = TextEditingController(text: widget.team?.name ?? '');
+    _shortNameController =
+        TextEditingController(text: widget.team?.shortName ?? '');
+    _logoUrlController = TextEditingController(text: widget.team?.logoUrl ?? '');
+    _isOwnTeam = widget.team?.isOwnTeam ?? widget.isInitialSetup;
   }
 
   @override
@@ -57,6 +64,34 @@ class _TeamFormPageState extends State<TeamFormPage> {
                 validator: (val) =>
                     val == null || val.isEmpty ? 'Requerido' : null,
               ),
+              const SizedBox(height: 16),
+              TextFormField(
+                controller: _shortNameController,
+                enabled: !_isSaving,
+                decoration: const InputDecoration(
+                  labelText: 'NOMBRE CORTO (EJ: SHK)',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+              const SizedBox(height: 16),
+              TextFormField(
+                controller: _logoUrlController,
+                enabled: !_isSaving,
+                decoration: const InputDecoration(
+                  labelText: 'URL DEL ESCUDO (BADGE)',
+                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.image),
+                ),
+              ),
+              const SizedBox(height: 16),
+              SwitchListTile(
+                title: const Text('EQUIPO DEL USUARIO'),
+                subtitle: const Text('Solo un equipo puede ser marcado como principal'),
+                value: _isOwnTeam,
+                activeColor: AppColors.nflGold,
+                onChanged:
+                    _isSaving ? null : (val) => setState(() => _isOwnTeam = val),
+              ),
               const SizedBox(height: 24),
               if (_isSaving)
                 const Center(child: CircularProgressIndicator())
@@ -71,10 +106,15 @@ class _TeamFormPageState extends State<TeamFormPage> {
                   widget.team != null &&
                   !_isSaving) ...[
                 const SizedBox(height: 16),
-                OutlinedButton.icon(
+                const SizedBox(height: 16),
+                ElevatedButton.icon(
                   onPressed: () => context.push('/players/${widget.team!.id}'),
-                  icon: const Icon(Icons.person),
-                  label: const Text('GESTIONAR JUGADORES'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.nflGold,
+                    foregroundColor: Colors.black,
+                  ),
+                  icon: const Icon(Icons.people),
+                  label: const Text('GESTIONAR JUGADORES (ROSTER)'),
                 ),
               ],
             ],
@@ -128,18 +168,22 @@ class _TeamFormPageState extends State<TeamFormPage> {
               widget.team?.id ??
               DateTime.now().millisecondsSinceEpoch.toString(),
           name: _nameController.text,
-          isOwnTeam: widget.isInitialSetup || (widget.team?.isOwnTeam ?? false),
+          shortName: _shortNameController.text.toUpperCase(),
+          logoUrl: _logoUrlController.text,
+          isOwnTeam: _isOwnTeam,
         );
 
-        await context
-            .read<TeamRepository>()
-            .saveTeam(team)
-            .timeout(
-              const Duration(seconds: 15),
-              onTimeout: () => throw Exception(
-                'TIEMPO DE ESPERA AGOTADO. Comprueba tu conexión o las reglas de Firebase.',
-              ),
-            );
+        if (_isOwnTeam) {
+          // Ensure atomicity if marking as own team
+          await context.read<TeamRepository>().setAsOwnTeam(team.id);
+          // Now save the other fields (though setAsOwnTeam only sets the flag)
+          // We still need to save everything else
+        }
+
+        await context.read<TeamRepository>().saveTeam(team).timeout(
+          const Duration(seconds: 15),
+          onTimeout: () => throw Exception('TIEMPO DE ESPERA AGOTADO.'),
+        );
 
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(

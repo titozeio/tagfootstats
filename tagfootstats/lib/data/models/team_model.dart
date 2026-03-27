@@ -8,6 +8,7 @@ class TeamModel extends Team {
   const TeamModel({
     required super.id,
     required super.name,
+    super.shortName,
     super.logoUrl,
     super.isOwnTeam = false,
   });
@@ -21,6 +22,7 @@ class TeamModel extends Team {
     return TeamModel(
       id: entity.id,
       name: entity.name,
+      shortName: entity.shortName,
       logoUrl: entity.logoUrl,
       isOwnTeam: entity.isOwnTeam,
     );

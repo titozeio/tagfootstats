@@ -69,14 +69,14 @@
 
 - [x] The log section of the matches is not working at all.
 
-## Phase 6.4: Upgrades in the Teams screens[]
+## Phase 6.4: Upgrades in the Teams screens [x]
 
-- [ ] In the Edit Team screen, the "manage players" button is hard to see, change its color.
-- [ ] In the Edit Team Screen, teams should have some optional values, like "badge" or "short name". Add a way so the user can add an image as a badge for the team.
-- [ ] In the Edit Team Screen, we should make it clear if that team is the user team. Maybe with a small icon or color.
-- [ ] In the Teams screen, we should allow the user to change his team easily (with a selector or a button for each team "make it my team"). A user can only have one team, so When selecting a new team for the user, the previous one ceases to be its team.
+- [x] In the Edit Team screen, the "manage players" button is hard to see, change its color.
+- [x] In the Edit Team Screen, teams should have some optional values, like "badge" or "short name". Add a way so the user can add an image as a badge for the team.
+- [x] In the Edit Team Screen, we should make it clear if that team is the user team. Maybe with a small icon or color.
+- [x] In the Teams screen, we should allow the user to change his team easily (with a selector or a button for each team "make it my team"). A user can only have one team, so When selecting a new team for the user, the previous one ceases to be its team.
 
-## Phase 6.4: Upgrades in the Players screens[]
+## Phase 6.5: Upgrades in the Players screens[]
 
 - [ ] In the Edit player screen, we should enable a way to upload a photo of the player, and using that photo in the player card.
 
