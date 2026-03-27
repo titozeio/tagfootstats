@@ -65,6 +65,21 @@ class HomePage extends StatelessWidget {
             style: TextStyle(fontWeight: FontWeight.w900, fontSize: 16),
           ),
         ),
+        const SizedBox(height: 12),
+        OutlinedButton.icon(
+          onPressed: () => context.push('/stats/advanced'),
+          style: OutlinedButton.styleFrom(
+            foregroundColor: AppColors.nflGold,
+            side: const BorderSide(color: AppColors.nflGold),
+            padding: const EdgeInsets.symmetric(vertical: 16),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          ),
+          icon: const Icon(Icons.analytics),
+          label: const Text(
+            'ESTADÍSTICAS AVANZADAS',
+            style: TextStyle(fontWeight: FontWeight.bold),
+          ),
+        ),
       ],
     );
   }
@@ -183,7 +198,6 @@ class HomePage extends StatelessWidget {
           return const SizedBox.shrink();
         }
 
-        // ideally matches have a date field, let's assume we take the last one
         final lastMatch = snapshot.data!.last;
 
         return Column(

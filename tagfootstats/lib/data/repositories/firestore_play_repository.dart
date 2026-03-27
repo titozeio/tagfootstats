@@ -31,6 +31,30 @@ class FirestorePlayRepository implements PlayRepository {
   }
 
   @override
+  Future<List<Play>> getPlaysByMatches(List<String> matchIds) async {
+    if (matchIds.isEmpty) return [];
+
+    // Firestore whereIn limit is 30. If more, we should chunk.
+    final List<Play> allPlays = [];
+    for (var i = 0; i < matchIds.length; i += 30) {
+      final chunk = matchIds.sublist(
+        i,
+        i + 30 > matchIds.length ? matchIds.length : i + 30,
+      );
+      final snapshot = await _firestore
+          .collection(_collectionPath)
+          .where('matchId', whereIn: chunk)
+          .get();
+      allPlays.addAll(
+        snapshot.docs.map(
+          (doc) => PlayModel.fromJson({...doc.data(), 'id': doc.id}),
+        ),
+      );
+    }
+    return allPlays;
+  }
+
+  @override
   Future<void> deletePlay(String id) async {
     await _firestore.collection(_collectionPath).doc(id).delete();
   }

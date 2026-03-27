@@ -91,11 +91,11 @@
 - [x] Team stats summary (Wins, Losses, Points).
 - [x] Implement Global Navigation (BottomNavigationBar with Home, Matches, Teams, Tournaments, Settings).
 
-## Phase 8: Advanced stats [ ]
+## Phase 8: Advanced stats [x]
 
-- [ ] Add a new button in the Home Screen: Advanced stats. This button should take the user to the advanced stats screen.
-- [ ] In the advanced stats screen, we should show the advanced stats of the user's team: Act as an expert in tag football and decide what advanced stats to show.
-- [ ] In the advanced stats screen, add abutton to be stats for the players of the user´s team. This should open a different table of stats for each player´s stats.Act as an expert in tag football and decide what advanced stats to show.
+- [x] Add a new button in the Home Screen: Advanced stats.
+- [x] In the advanced stats screen, show team stats: Success Rate, YPP, Completion %, Play Mix.
+- [x] In the advanced stats screen, show player stats: Individual Yards, Points, Ints, Sacks, Pulls/Tackles.
 
 ## Phase 9: Verification & Launch [ ]
 

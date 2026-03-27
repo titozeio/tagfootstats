@@ -14,6 +14,7 @@ import 'package:tagfootstats/presentation/pages/admin/players/player_form_page.d
 import 'package:tagfootstats/presentation/pages/admin/matches/match_list_page.dart';
 import 'package:tagfootstats/presentation/pages/admin/matches/match_form_page.dart';
 import 'package:tagfootstats/presentation/pages/admin/settings_page.dart';
+import 'package:tagfootstats/presentation/pages/stats/advanced_stats_page.dart';
 import 'package:tagfootstats/domain/repositories/team_repository.dart';
 import 'package:tagfootstats/domain/entities/team.dart';
 import 'package:tagfootstats/presentation/widgets/main_scaffold.dart';
@@ -125,6 +126,10 @@ class AppRouter {
           GoRoute(
             path: '/settings',
             builder: (context, state) => const SettingsPage(),
+          ),
+          GoRoute(
+            path: '/stats/advanced',
+            builder: (context, state) => const AdvancedStatsPage(),
           ),
         ],
       ),
