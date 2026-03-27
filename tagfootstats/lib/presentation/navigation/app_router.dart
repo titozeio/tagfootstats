@@ -112,7 +112,10 @@ class AppRouter {
       ),
       GoRoute(
         path: '/matches/new',
-        builder: (context, state) => const MatchFormPage(),
+        builder: (context, state) {
+          final tournamentId = state.uri.queryParameters['tournamentId'];
+          return MatchFormPage(tournamentId: tournamentId);
+        },
       ),
     ],
   );

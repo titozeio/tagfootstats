@@ -4,8 +4,10 @@ import 'package:go_router/go_router.dart';
 import 'package:tagfootstats/core/theme/app_colors.dart';
 import 'package:tagfootstats/domain/entities/tournament.dart';
 import 'package:tagfootstats/domain/entities/team.dart';
+import 'package:tagfootstats/domain/entities/match.dart' as entity;
 import 'package:tagfootstats/domain/repositories/tournament_repository.dart';
 import 'package:tagfootstats/domain/repositories/team_repository.dart';
+import 'package:tagfootstats/domain/repositories/match_repository.dart';
 import 'package:tagfootstats/presentation/bloc/app/app_bloc.dart';
 
 class TournamentFormPage extends StatefulWidget {
@@ -25,6 +27,7 @@ class _TournamentFormPageState extends State<TournamentFormPage> {
   DateTime _endDate = DateTime.now().add(const Duration(days: 7));
   TournamentType _type = TournamentType.liga;
   List<String> _teamIds = [];
+  List<entity.Match> _matches = [];
   bool _isLoading = true;
 
   @override
@@ -41,12 +44,16 @@ class _TournamentFormPageState extends State<TournamentFormPage> {
           .read<TournamentRepository>()
           .getTournamentById(widget.id!);
       if (tournament != null) {
+        final matches = await context
+            .read<MatchRepository>()
+            .getMatchesByTournament(widget.id!);
         setState(() {
           _nameController.text = tournament.name;
           _startDate = tournament.startDate;
           _endDate = tournament.endDate;
           _type = tournament.type;
           _teamIds = List.from(tournament.teamIds);
+          _matches = matches;
         });
       }
     } else {
@@ -128,10 +135,14 @@ class _TournamentFormPageState extends State<TournamentFormPage> {
               const SizedBox(height: 8),
               ..._teamIds.map((id) => _buildTeamTile(id)),
               const SizedBox(height: 16),
-              OutlinedButton.icon(
+              ElevatedButton.icon(
                 onPressed: _showAddTeamDialog,
                 icon: const Icon(Icons.group_add),
                 label: const Text('ADD EXISTING TEAM'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primaryBlue,
+                  foregroundColor: Colors.white,
+                ),
               ),
               const SizedBox(height: 16),
               Row(
@@ -155,7 +166,40 @@ class _TournamentFormPageState extends State<TournamentFormPage> {
                   ),
                 ],
               ),
-              const SizedBox(height: 32),
+              if (widget.id != null) ...[
+                const SizedBox(height: 32),
+                const Text(
+                  'MATCHES',
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                ),
+                const SizedBox(height: 8),
+                ..._matches.map((m) => _buildMatchTile(m)),
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    Expanded(
+                      child: ElevatedButton.icon(
+                        onPressed: _showAddMatchDialog,
+                        icon: const Icon(Icons.playlist_add),
+                        label: const Text('ADD EXISTING MATCH'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.surfaceDark,
+                          foregroundColor: Colors.white,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: ElevatedButton.icon(
+                        onPressed: _createNewMatch,
+                        icon: const Icon(Icons.add_box),
+                        label: const Text('NEW MATCH'),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+              const SizedBox(height: 48),
               ElevatedButton(
                 onPressed: _submit,
                 style: ElevatedButton.styleFrom(
@@ -305,5 +349,103 @@ class _TournamentFormPageState extends State<TournamentFormPage> {
       await context.read<TournamentRepository>().deleteTournament(widget.id!);
       if (mounted) context.pop();
     }
+  }
+
+  Widget _buildMatchTile(entity.Match match) {
+    return Card(
+      margin: const EdgeInsets.only(bottom: 8),
+      child: ListTile(
+        onTap: () => context.push('/matches/${match.id}'),
+        leading: const Icon(Icons.scoreboard, color: AppColors.nflGold),
+        title: Text('${match.homeScore} - ${match.awayScore}'),
+        subtitle: Text('VS ${match.opponentId}'),
+        trailing: IconButton(
+          icon: const Icon(Icons.delete_outline, color: AppColors.accentRed),
+          onPressed: () => _deleteMatch(match.id),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _deleteMatch(String id) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('DELETE MATCH?'),
+        content: const Text('THIS WILL REMOVE THE MATCH PERMANENTLY.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('CANCEL'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('DELETE', style: TextStyle(color: AppColors.accentRed)),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true && mounted) {
+      await context.read<MatchRepository>().deleteMatch(id);
+      _loadData();
+    }
+  }
+
+  Future<void> _showAddMatchDialog() async {
+    final allMatches = await context.read<MatchRepository>().getMatches();
+    // Filter out matches already in this tournament and matches from other tournaments
+    // (A match can only be in one tournament according to the entity)
+    final availableMatches =
+        allMatches.where((m) => m.tournamentId != widget.id).toList();
+
+    if (!mounted) return;
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('SELECT MATCH'),
+          content: SizedBox(
+            width: double.maxFinite,
+            child: ListView.builder(
+              shrinkWrap: true,
+              itemCount: availableMatches.length,
+              itemBuilder: (context, index) {
+                final match = availableMatches[index];
+                return ListTile(
+                  title: Text('MATCH vs ${match.opponentId}'),
+                  subtitle: Text(match.dateTime.toString()),
+                  onTap: () async {
+                    final updatedMatch = entity.Match(
+                      id: match.id,
+                      tournamentId: widget.id!,
+                      opponentId: match.opponentId,
+                      dateTime: match.dateTime,
+                      locationType: match.locationType,
+                      matchday: match.matchday,
+                      phase: match.phase,
+                      homeScore: match.homeScore,
+                      awayScore: match.awayScore,
+                    );
+                    await context.read<MatchRepository>().saveMatch(updatedMatch);
+                    if (mounted) {
+                      Navigator.pop(context);
+                      _loadData();
+                    }
+                  },
+                );
+              },
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> _createNewMatch() async {
+    // Navigate to match form with pre-filled tournament ID
+    // We can use query parameters or state depending on how MatchFormPage is built
+    context.push('/matches/new?tournamentId=${widget.id}').then((_) => _loadData());
   }
 }

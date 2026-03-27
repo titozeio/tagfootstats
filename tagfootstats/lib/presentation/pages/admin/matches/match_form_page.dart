@@ -12,8 +12,9 @@ import 'package:tagfootstats/domain/entities/team.dart';
 
 class MatchFormPage extends StatefulWidget {
   final entity.Match? match;
+  final String? tournamentId;
 
-  const MatchFormPage({super.key, this.match});
+  const MatchFormPage({super.key, this.match, this.tournamentId});
 
   @override
   State<MatchFormPage> createState() => _MatchFormPageState();
@@ -47,6 +48,8 @@ class _MatchFormPageState extends State<MatchFormPage> {
       _locationType = widget.match!.locationType;
       _selectedDate = widget.match!.dateTime;
       _selectedTime = TimeOfDay.fromDateTime(widget.match!.dateTime);
+    } else if (widget.tournamentId != null) {
+      _selectedTournamentId = widget.tournamentId;
     }
 
     _loadTeams();

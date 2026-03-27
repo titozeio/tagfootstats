@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:tagfootstats/core/theme/app_colors.dart';
 import 'package:tagfootstats/domain/entities/tournament.dart';
 import 'package:tagfootstats/domain/repositories/tournament_repository.dart';
+import 'package:tagfootstats/presentation/widgets/live_tag.dart';
 
 class TournamentListPage extends StatelessWidget {
   const TournamentListPage({super.key});
@@ -49,26 +50,7 @@ class TournamentListPage extends StatelessWidget {
                   trailing: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      if (isLive)
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 4,
-                          ),
-                          decoration: BoxDecoration(
-                            color: Colors.green.withOpacity(0.2),
-                            borderRadius: BorderRadius.circular(4),
-                            border: Border.all(color: Colors.green),
-                          ),
-                          child: const Text(
-                            'LIVE',
-                            style: TextStyle(
-                              color: Colors.green,
-                              fontSize: 10,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
+                      if (isLive) const LiveTag(),
                       const Icon(Icons.chevron_right),
                     ],
                   ),
