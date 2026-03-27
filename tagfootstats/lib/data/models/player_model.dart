@@ -14,6 +14,8 @@ class PlayerModel extends Player {
     super.birthDate,
     super.email,
     super.phone,
+    super.position = PlayerPosition.both,
+    super.photoUrl,
   });
 
   factory PlayerModel.fromJson(Map<String, dynamic> json) =>
@@ -31,6 +33,8 @@ class PlayerModel extends Player {
       birthDate: entity.birthDate,
       email: entity.email,
       phone: entity.phone,
+      position: entity.position,
+      photoUrl: entity.photoUrl,
     );
   }
 }

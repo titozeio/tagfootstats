@@ -66,6 +66,7 @@
 - [x] Fase debería ser un selector de fases(>Final, Seimifinal, Cuartos, Octavos, liguilla, y otros que habilitaría un campo de texto para añadir una jornada custom).
 
 ## Phase 6.3.5: Fixing stuff [ ]
+## Phase 6.3.5: Fixing stuff [x]
 
 - [x] The log section of the matches is not working at all.
 
@@ -76,17 +77,19 @@
 - [x] In the Edit Team Screen, we should make it clear if that team is the user team. Maybe with a small icon or color.
 - [x] In the Teams screen, we should allow the user to change his team easily (with a selector or a button for each team "make it my team"). A user can only have one team, so When selecting a new team for the user, the previous one ceases to be its team.
 
-## Phase 6.5: Upgrades in the Players screens[]
+## Phase 6.5: Upgrades in the Players screens [x]
 
-- [ ] In the Edit player screen, we should enable a way to upload a photo of the player, and using that photo in the player card.
+- [x] in the players list, the dorsal should be bigger and easy to see. Change its format or color.
+- [x] In the Edit player screen, we should also track where they play: Offense, Defense or Both.
+- [x] In the Edit player screen, the "back" button takes you to the teams list, but should take you to that team's players list.
+- [x] In the Edit player screen, we should enable a way to upload a photo of the player, and using that photo in the player card.
 
-## Phase 7: Home & Global Navigation [/]
+## Phase 7: Home & Global Navigation [x]
 
-- [/] Build Main Dashboard (Home) [/]
-  - [x] "Own Team" check and redirect
-  - [x] Last Match summary card
-  - [x] Navigation menu with icon buttons
-- [ ] Implement Global Navigation (AppRouter/BottomNavBar)
+- [x] Build Main Dashboard (Home)
+- [x] Quick-access button to start recording a match.
+- [x] Team stats summary (Wins, Losses, Points).
+- [x] Implement Global Navigation (BottomNavigationBar with Home, Matches, Teams, Tournaments, Settings).
 
 ## Phase 8: Advanced stats [ ]
 

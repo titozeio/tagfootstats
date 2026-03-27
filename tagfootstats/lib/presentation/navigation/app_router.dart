@@ -13,8 +13,10 @@ import 'package:tagfootstats/presentation/pages/admin/players/player_list_page.d
 import 'package:tagfootstats/presentation/pages/admin/players/player_form_page.dart';
 import 'package:tagfootstats/presentation/pages/admin/matches/match_list_page.dart';
 import 'package:tagfootstats/presentation/pages/admin/matches/match_form_page.dart';
+import 'package:tagfootstats/presentation/pages/admin/settings_page.dart';
 import 'package:tagfootstats/domain/repositories/team_repository.dart';
 import 'package:tagfootstats/domain/entities/team.dart';
+import 'package:tagfootstats/presentation/widgets/main_scaffold.dart';
 
 class AppRouter {
   final AppBloc appBloc;
@@ -49,73 +51,82 @@ class AppRouter {
     },
     routes: [
       GoRoute(path: '/splash', builder: (context, state) => const SplashPage()),
-      GoRoute(path: '/', builder: (context, state) => const HomePage()),
       GoRoute(
         path: '/setup-team',
         builder: (context, state) => const TeamFormPage(isInitialSetup: true),
       ),
-      GoRoute(
-        path: '/match/:id',
-        builder: (context, state) {
-          final id = state.pathParameters['id']!;
-          return MatchPage(matchId: id);
-        },
-      ),
-      GoRoute(
-        path: '/tournaments',
-        builder: (context, state) => const TournamentListPage(),
-      ),
-      GoRoute(
-        path: '/tournaments/new',
-        builder: (context, state) => const TournamentFormPage(),
-      ),
-      GoRoute(
-        path: '/tournaments/:id',
-        builder: (context, state) =>
-            TournamentFormPage(id: state.pathParameters['id']),
-      ),
-      GoRoute(
-        path: '/teams',
-        builder: (context, state) => const TeamListPage(),
-      ),
-      GoRoute(
-        path: '/teams/new',
-        builder: (context, state) => const TeamFormPage(),
-      ),
-      GoRoute(
-        path: '/teams/:id',
-        builder: (context, state) =>
-            TeamFormLoader(id: state.pathParameters['id']!),
-      ),
-      GoRoute(
-        path: '/players',
-        builder: (context, state) => const PlayerListPage(),
-      ),
-      GoRoute(
-        path: '/players/:teamId',
-        builder: (context, state) =>
-            PlayerListPage(teamId: state.pathParameters['teamId']),
-      ),
-      GoRoute(
-        path: '/player/new/:teamId',
-        builder: (context, state) =>
-            PlayerFormPage(teamId: state.pathParameters['teamId']),
-      ),
-      GoRoute(
-        path: '/player/:id',
-        builder: (context, state) =>
-            PlayerFormPage(id: state.pathParameters['id']),
-      ),
-      GoRoute(
-        path: '/matches',
-        builder: (context, state) => const MatchListPage(),
-      ),
-      GoRoute(
-        path: '/matches/new',
-        builder: (context, state) {
-          final tournamentId = state.uri.queryParameters['tournamentId'];
-          return MatchFormPage(tournamentId: tournamentId);
-        },
+      ShellRoute(
+        builder: (context, state, child) => MainScaffold(child: child),
+        routes: [
+          GoRoute(path: '/', builder: (context, state) => const HomePage()),
+          GoRoute(
+            path: '/match/:id',
+            builder: (context, state) {
+              final id = state.pathParameters['id']!;
+              return MatchPage(matchId: id);
+            },
+          ),
+          GoRoute(
+            path: '/tournaments',
+            builder: (context, state) => const TournamentListPage(),
+          ),
+          GoRoute(
+            path: '/tournaments/new',
+            builder: (context, state) => const TournamentFormPage(),
+          ),
+          GoRoute(
+            path: '/tournaments/:id',
+            builder: (context, state) =>
+                TournamentFormPage(id: state.pathParameters['id']),
+          ),
+          GoRoute(
+            path: '/teams',
+            builder: (context, state) => const TeamListPage(),
+          ),
+          GoRoute(
+            path: '/teams/new',
+            builder: (context, state) => const TeamFormPage(),
+          ),
+          GoRoute(
+            path: '/teams/:id',
+            builder: (context, state) =>
+                TeamFormLoader(id: state.pathParameters['id']!),
+          ),
+          GoRoute(
+            path: '/players',
+            builder: (context, state) => const PlayerListPage(),
+          ),
+          GoRoute(
+            path: '/players/:teamId',
+            builder: (context, state) =>
+                PlayerListPage(teamId: state.pathParameters['teamId']),
+          ),
+          GoRoute(
+            path: '/player/new/:teamId',
+            builder: (context, state) =>
+                PlayerFormPage(teamId: state.pathParameters['teamId']),
+          ),
+          GoRoute(
+            path: '/player/:id',
+            builder: (context, state) =>
+                PlayerFormPage(id: state.pathParameters['id']),
+          ),
+          GoRoute(
+            path: '/matches',
+            builder: (context, state) => const MatchListPage(),
+          ),
+          GoRoute(
+            path: '/matches/new',
+            builder: (context, state) {
+              final tournamentId = state.uri.queryParameters['tournamentId'];
+              return MatchFormPage(tournamentId: tournamentId);
+            },
+          ),
+          GoRoute(
+            path: '/settings',
+            builder: (context, state) => const SettingsPage(),
+          ),
+        ],
       ),
     ],
   );

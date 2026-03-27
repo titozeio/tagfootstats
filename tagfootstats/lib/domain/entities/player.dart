@@ -1,5 +1,7 @@
 import 'package:equatable/equatable.dart';
 
+enum PlayerPosition { offense, defense, both }
+
 class Player extends Equatable {
   final String id;
   final String teamId;
@@ -9,6 +11,8 @@ class Player extends Equatable {
   final DateTime? birthDate;
   final String? email;
   final String? phone;
+  final PlayerPosition position;
+  final String? photoUrl;
 
   const Player({
     required this.id,
@@ -19,6 +23,8 @@ class Player extends Equatable {
     this.birthDate,
     this.email,
     this.phone,
+    this.position = PlayerPosition.both,
+    this.photoUrl,
   });
 
   String get fullName => '$firstName $lastName';
@@ -33,5 +39,7 @@ class Player extends Equatable {
         birthDate,
         email,
         phone,
+        position,
+        photoUrl,
       ];
 }

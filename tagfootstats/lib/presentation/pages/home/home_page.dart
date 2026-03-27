@@ -23,8 +23,6 @@ class HomePage extends StatelessWidget {
             return const Center(child: CircularProgressIndicator());
           }
 
-          final isDesktop = MediaQuery.of(context).size.width > 700;
-
           return Center(
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 1000),
@@ -34,9 +32,11 @@ class HomePage extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    _buildLastMatchResult(context, state),
+                    _buildQuickActions(context, state),
                     const SizedBox(height: 32),
-                    _buildMainMenu(context, isDesktop),
+                    _buildTeamStats(context, state),
+                    const SizedBox(height: 32),
+                    _buildLastMatchResult(context, state),
                   ],
                 ),
               ),
@@ -44,6 +44,134 @@ class HomePage extends StatelessWidget {
           );
         },
       ),
+    );
+  }
+
+  Widget _buildQuickActions(BuildContext context, AppReady state) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        ElevatedButton.icon(
+          onPressed: () => context.push('/matches/new'),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: AppColors.nflGold,
+            foregroundColor: Colors.black,
+            padding: const EdgeInsets.symmetric(vertical: 20),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          ),
+          icon: const Icon(Icons.play_circle_fill, size: 28),
+          label: const Text(
+            'REGISTRAR PARTIDO',
+            style: TextStyle(fontWeight: FontWeight.w900, fontSize: 16),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildTeamStats(BuildContext context, AppReady state) {
+    return FutureBuilder<List<entity.Match>>(
+      future: context.read<MatchRepository>().getMatches(),
+      builder: (context, snapshot) {
+        if (!snapshot.hasData) return const SizedBox.shrink();
+
+        final matches = snapshot.data!;
+        int wins = 0;
+        int losses = 0;
+        int pointsFor = 0;
+        int pointsAgainst = 0;
+
+        for (var m in matches) {
+          final isHome = m.locationType == entity.LocationType.local;
+          final isAway = m.locationType == entity.LocationType.visitante;
+
+          pointsFor += isHome ? m.homeScore : m.awayScore;
+          pointsAgainst += isHome ? m.awayScore : m.homeScore;
+
+          if (m.homeScore == m.awayScore) continue;
+
+          if (isHome) {
+            m.homeScore > m.awayScore ? wins++ : losses++;
+          } else if (isAway) {
+            m.awayScore > m.homeScore ? wins++ : losses++;
+          }
+        }
+
+        return Container(
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: AppColors.surfaceDark,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: AppColors.nflGold.withOpacity(0.3)),
+          ),
+          child: Column(
+            children: [
+              Row(
+                children: [
+                  CircleAvatar(
+                    backgroundColor: AppColors.primaryBlue,
+                    backgroundImage: (state.ownTeam.logoUrl != null && state.ownTeam.logoUrl!.isNotEmpty)
+                        ? NetworkImage(state.ownTeam.logoUrl!)
+                        : null,
+                    radius: 24,
+                    child: (state.ownTeam.logoUrl == null || state.ownTeam.logoUrl!.isEmpty)
+                        ? const Icon(Icons.groups, color: Colors.white)
+                        : null,
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          state.ownTeam.name.toUpperCase(),
+                          style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 16),
+                        ),
+                        const Text(
+                          'ESTADÍSTICAS DE TEMPORADA',
+                          style: TextStyle(fontSize: 10, color: Colors.grey),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Text(
+                    '$wins - $losses',
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w900,
+                      fontSize: 24,
+                      color: AppColors.nflGold,
+                    ),
+                  ),
+                ],
+              ),
+              const Divider(height: 32, color: Colors.white10),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  _buildStatItem('PUNTOS A FAVOR', pointsFor.toString()),
+                  _buildStatItem('PUNTOS EN CONTRA', pointsAgainst.toString()),
+                  _buildStatItem('DIFERENCIA', (pointsFor - pointsAgainst).toString()),
+                ],
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildStatItem(String label, String value) {
+    return Column(
+      children: [
+        Text(
+          value,
+          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+        ),
+        Text(
+          label,
+          style: const TextStyle(fontSize: 8, color: Colors.grey, letterSpacing: 1),
+        ),
+      ],
     );
   }
 
@@ -55,10 +183,8 @@ class HomePage extends StatelessWidget {
           return const SizedBox.shrink();
         }
 
-        // Sort matches by date (assuming id or some field indicates chronological order, 
-        // ideally matches have a date field, let's assume we take the first for now as per current logic
-        // but adding importance to it being interactive)
-        final lastMatch = snapshot.data!.first;
+        // ideally matches have a date field, let's assume we take the last one
+        final lastMatch = snapshot.data!.last;
 
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -76,55 +202,6 @@ class HomePage extends StatelessWidget {
           ],
         );
       },
-    );
-  }
-
-  Widget _buildMainMenu(BuildContext context, bool isDesktop) {
-    return GridView.count(
-      crossAxisCount: isDesktop ? 4 : 2,
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      mainAxisSpacing: 16,
-      crossAxisSpacing: 16,
-      childAspectRatio: isDesktop ? 1.2 : 1.5,
-      children: [
-        _buildMenuButton(
-          context,
-          'TORNEOS',
-          Icons.emoji_events,
-          '/tournaments',
-        ),
-        _buildMenuButton(context, 'EQUIPOS', Icons.groups, '/teams'),
-        _buildMenuButton(context, 'JUGADORES', Icons.person, '/players'),
-        _buildMenuButton(context, 'PARTIDOS', Icons.scoreboard, '/matches'),
-      ],
-    );
-  }
-
-  Widget _buildMenuButton(
-    BuildContext context,
-    String label,
-    IconData icon,
-    String route,
-  ) {
-    return InkWell(
-      onTap: () => context.push(route),
-      borderRadius: BorderRadius.circular(12),
-      child: Container(
-        decoration: BoxDecoration(
-          color: AppColors.surfaceDark,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: AppColors.glassBorder),
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, size: 32, color: AppColors.nflGold),
-            const SizedBox(height: 8),
-            Text(label, style: const TextStyle(fontWeight: FontWeight.bold)),
-          ],
-        ),
-      ),
     );
   }
 }

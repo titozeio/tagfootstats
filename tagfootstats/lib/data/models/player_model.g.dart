@@ -17,6 +17,10 @@ PlayerModel _$PlayerModelFromJson(Map<String, dynamic> json) => PlayerModel(
       : DateTime.parse(json['birthDate'] as String),
   email: json['email'] as String?,
   phone: json['phone'] as String?,
+  position:
+      $enumDecodeNullable(_$PlayerPositionEnumMap, json['position']) ??
+      PlayerPosition.both,
+  photoUrl: json['photoUrl'] as String?,
 );
 
 Map<String, dynamic> _$PlayerModelToJson(PlayerModel instance) =>
@@ -29,4 +33,12 @@ Map<String, dynamic> _$PlayerModelToJson(PlayerModel instance) =>
       'birthDate': instance.birthDate?.toIso8601String(),
       'email': instance.email,
       'phone': instance.phone,
+      'position': _$PlayerPositionEnumMap[instance.position]!,
+      'photoUrl': instance.photoUrl,
     };
+
+const _$PlayerPositionEnumMap = {
+  PlayerPosition.offense: 'offense',
+  PlayerPosition.defense: 'defense',
+  PlayerPosition.both: 'both',
+};

@@ -20,6 +20,8 @@ class _PlayerFormPageState extends State<PlayerFormPage> {
   late TextEditingController _firstNameController;
   late TextEditingController _lastNameController;
   late TextEditingController _dorsalController;
+  late TextEditingController _photoUrlController;
+  PlayerPosition _selectedPosition = PlayerPosition.both;
   bool _isLoading = true;
   String? _currentTeamId;
 
@@ -29,6 +31,7 @@ class _PlayerFormPageState extends State<PlayerFormPage> {
     _firstNameController = TextEditingController();
     _lastNameController = TextEditingController();
     _dorsalController = TextEditingController();
+    _photoUrlController = TextEditingController();
     _currentTeamId = widget.teamId;
     _loadData();
   }
@@ -43,6 +46,8 @@ class _PlayerFormPageState extends State<PlayerFormPage> {
           _firstNameController.text = player.firstName;
           _lastNameController.text = player.lastName;
           _dorsalController.text = player.dorsal.toString();
+          _photoUrlController.text = player.photoUrl ?? '';
+          _selectedPosition = player.position;
           _currentTeamId = player.teamId;
         });
       }
@@ -99,6 +104,64 @@ class _PlayerFormPageState extends State<PlayerFormPage> {
                 keyboardType: TextInputType.number,
                 validator: (v) => v?.isEmpty ?? true ? 'Requerido' : null,
               ),
+              const SizedBox(height: 16),
+              DropdownButtonFormField<PlayerPosition>(
+                value: _selectedPosition,
+                decoration: const InputDecoration(
+                  labelText: 'POSICIÓN PRINCIPAL',
+                  border: OutlineInputBorder(),
+                ),
+                items: PlayerPosition.values
+                    .map((p) => DropdownMenuItem(
+                          value: p,
+                          child: Text(p.name.toUpperCase()),
+                        ))
+                    .toList(),
+                onChanged: (val) => setState(() => _selectedPosition = val!),
+              ),
+              const SizedBox(height: 16),
+              TextFormField(
+                controller: _photoUrlController,
+                decoration: const InputDecoration(
+                  labelText: 'URL DE LA FOTO (OPCIONAL)',
+                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.image),
+                ),
+              ),
+              const SizedBox(height: 16),
+              ValueListenableBuilder<TextEditingValue>(
+                valueListenable: _photoUrlController,
+                builder: (context, value, _) {
+                  final url = value.text.trim();
+                  return Center(
+                    child: Column(
+                      children: [
+                        CircleAvatar(
+                          radius: 50,
+                          backgroundColor: Colors.white12,
+                          child: ClipOval(
+                            child: url.isNotEmpty
+                                ? Image.network(
+                                    url,
+                                    width: 100,
+                                    height: 100,
+                                    fit: BoxFit.cover,
+                                    errorBuilder: (context, error, stackTrace) =>
+                                        const Icon(Icons.broken_image, size: 40),
+                                  )
+                                : const Icon(Icons.add_a_photo, size: 40),
+                          ),
+                        ),
+                        if (url.isNotEmpty)
+                          const Padding(
+                            padding: EdgeInsets.only(top: 8.0),
+                            child: Text('VISTA PREVIA', style: TextStyle(fontSize: 10, color: Colors.grey)),
+                          ),
+                      ],
+                    ),
+                  );
+                },
+              ),
               const SizedBox(height: 32),
               ElevatedButton(
                 onPressed: _submit,
@@ -124,10 +187,14 @@ class _PlayerFormPageState extends State<PlayerFormPage> {
         firstName: _firstNameController.text,
         lastName: _lastNameController.text,
         dorsal: int.parse(_dorsalController.text),
+        position: _selectedPosition,
+        photoUrl: _photoUrlController.text,
       );
 
       await context.read<PlayerRepository>().savePlayer(player);
-      if (mounted) context.pop();
+      if (mounted) {
+        context.pushReplacement('/players/$_currentTeamId');
+      }
     }
   }
 
@@ -153,8 +220,15 @@ class _PlayerFormPageState extends State<PlayerFormPage> {
     );
 
     if (confirmed == true && mounted) {
+      final teamId = _currentTeamId;
       await context.read<PlayerRepository>().deletePlayer(widget.id!);
-      if (mounted) context.pop();
+      if (mounted) {
+        if (teamId != null) {
+          context.pushReplacement('/players/$teamId');
+        } else {
+          context.pop();
+        }
+      }
     }
   }
 }
