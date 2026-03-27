@@ -21,10 +21,12 @@ class TournamentListPage extends StatelessWidget {
       body: FutureBuilder<List<Tournament>>(
         future: context.read<TournamentRepository>().getTournaments(),
         builder: (context, snapshot) {
-          if (!snapshot.hasData)
+          if (!snapshot.hasData) {
             return const Center(child: CircularProgressIndicator());
-          if (snapshot.data!.isEmpty)
+          }
+          if (snapshot.data!.isEmpty) {
             return const Center(child: Text('No se han encontrado torneos.'));
+          }
 
           final tournaments = snapshot.data!;
 

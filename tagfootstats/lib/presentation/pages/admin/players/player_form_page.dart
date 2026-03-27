@@ -57,8 +57,9 @@ class _PlayerFormPageState extends State<PlayerFormPage> {
 
   @override
   Widget build(BuildContext context) {
-    if (_isLoading)
+    if (_isLoading) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
 
     return Scaffold(
       appBar: AppBar(
@@ -106,16 +107,18 @@ class _PlayerFormPageState extends State<PlayerFormPage> {
               ),
               const SizedBox(height: 16),
               DropdownButtonFormField<PlayerPosition>(
-                value: _selectedPosition,
+                initialValue: _selectedPosition,
                 decoration: const InputDecoration(
                   labelText: 'POSICIÓN PRINCIPAL',
                   border: OutlineInputBorder(),
                 ),
                 items: PlayerPosition.values
-                    .map((p) => DropdownMenuItem(
-                          value: p,
-                          child: Text(p.name.toUpperCase()),
-                        ))
+                    .map(
+                      (p) => DropdownMenuItem(
+                        value: p,
+                        child: Text(p.name.toUpperCase()),
+                      ),
+                    )
                     .toList(),
                 onChanged: (val) => setState(() => _selectedPosition = val!),
               ),
@@ -146,8 +149,12 @@ class _PlayerFormPageState extends State<PlayerFormPage> {
                                     width: 100,
                                     height: 100,
                                     fit: BoxFit.cover,
-                                    errorBuilder: (context, error, stackTrace) =>
-                                        const Icon(Icons.broken_image, size: 40),
+                                    errorBuilder:
+                                        (context, error, stackTrace) =>
+                                            const Icon(
+                                              Icons.broken_image,
+                                              size: 40,
+                                            ),
                                   )
                                 : const Icon(Icons.add_a_photo, size: 40),
                           ),
@@ -155,7 +162,13 @@ class _PlayerFormPageState extends State<PlayerFormPage> {
                         if (url.isNotEmpty)
                           const Padding(
                             padding: EdgeInsets.only(top: 8.0),
-                            child: Text('VISTA PREVIA', style: TextStyle(fontSize: 10, color: Colors.grey)),
+                            child: Text(
+                              'VISTA PREVIA',
+                              style: TextStyle(
+                                fontSize: 10,
+                                color: Colors.grey,
+                              ),
+                            ),
                           ),
                       ],
                     ),

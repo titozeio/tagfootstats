@@ -57,7 +57,9 @@ class HomePage extends StatelessWidget {
             backgroundColor: AppColors.nflGold,
             foregroundColor: Colors.black,
             padding: const EdgeInsets.symmetric(vertical: 20),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
           ),
           icon: const Icon(Icons.play_circle_fill, size: 28),
           label: const Text(
@@ -72,7 +74,9 @@ class HomePage extends StatelessWidget {
             foregroundColor: AppColors.nflGold,
             side: const BorderSide(color: AppColors.nflGold),
             padding: const EdgeInsets.symmetric(vertical: 16),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
           ),
           icon: const Icon(Icons.analytics),
           label: const Text(
@@ -123,15 +127,22 @@ class HomePage extends StatelessWidget {
             children: [
               Row(
                 children: [
-                  CircleAvatar(
-                    backgroundColor: AppColors.primaryBlue,
-                    backgroundImage: (state.ownTeam.logoUrl != null && state.ownTeam.logoUrl!.isNotEmpty)
-                        ? NetworkImage(state.ownTeam.logoUrl!)
-                        : null,
-                    radius: 24,
-                    child: (state.ownTeam.logoUrl == null || state.ownTeam.logoUrl!.isEmpty)
-                        ? const Icon(Icons.groups, color: Colors.white)
-                        : null,
+                  Hero(
+                    tag: 'team_logo_${state.ownTeam.id}',
+                    child: CircleAvatar(
+                      backgroundColor: AppColors.primaryBlue,
+                      backgroundImage:
+                          (state.ownTeam.logoUrl != null &&
+                              state.ownTeam.logoUrl!.isNotEmpty)
+                          ? NetworkImage(state.ownTeam.logoUrl!)
+                          : null,
+                      radius: 24,
+                      child:
+                          (state.ownTeam.logoUrl == null ||
+                              state.ownTeam.logoUrl!.isEmpty)
+                          ? const Icon(Icons.groups, color: Colors.white)
+                          : null,
+                    ),
                   ),
                   const SizedBox(width: 16),
                   Expanded(
@@ -140,7 +151,10 @@ class HomePage extends StatelessWidget {
                       children: [
                         Text(
                           state.ownTeam.name.toUpperCase(),
-                          style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 16),
+                          style: const TextStyle(
+                            fontWeight: FontWeight.w900,
+                            fontSize: 16,
+                          ),
                         ),
                         const Text(
                           'ESTADÍSTICAS DE TEMPORADA',
@@ -165,7 +179,10 @@ class HomePage extends StatelessWidget {
                 children: [
                   _buildStatItem('PUNTOS A FAVOR', pointsFor.toString()),
                   _buildStatItem('PUNTOS EN CONTRA', pointsAgainst.toString()),
-                  _buildStatItem('DIFERENCIA', (pointsFor - pointsAgainst).toString()),
+                  _buildStatItem(
+                    'DIFERENCIA',
+                    (pointsFor - pointsAgainst).toString(),
+                  ),
                 ],
               ),
             ],
@@ -184,7 +201,11 @@ class HomePage extends StatelessWidget {
         ),
         Text(
           label,
-          style: const TextStyle(fontSize: 8, color: Colors.grey, letterSpacing: 1),
+          style: const TextStyle(
+            fontSize: 8,
+            color: Colors.grey,
+            letterSpacing: 1,
+          ),
         ),
       ],
     );

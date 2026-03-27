@@ -101,10 +101,12 @@ class MatchBloc extends Bloc<MatchEvent, MatchState> {
       int points = event.play.points;
       if (points == 0) {
         if (event.play.outcome.toLowerCase().contains('touchdown')) points = 6;
-        if (event.play.outcome.toLowerCase().contains('extra point 1'))
+        if (event.play.outcome.toLowerCase().contains('extra point 1')) {
           points = 1;
-        if (event.play.outcome.toLowerCase().contains('extra point 2'))
+        }
+        if (event.play.outcome.toLowerCase().contains('extra point 2')) {
           points = 2;
+        }
         if (event.play.outcome.toLowerCase().contains('safety')) points = 2;
       }
 

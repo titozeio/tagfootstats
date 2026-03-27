@@ -64,8 +64,9 @@ class _MatchFormPageState extends State<MatchFormPage> {
   Future<void> _loadInitialData() async {
     try {
       final teams = await context.read<TeamRepository>().getTeams();
-      final tournaments =
-          await context.read<TournamentRepository>().getTournaments();
+      final tournaments = await context
+          .read<TournamentRepository>()
+          .getTournaments();
 
       if (mounted) {
         setState(() {
@@ -94,8 +95,6 @@ class _MatchFormPageState extends State<MatchFormPage> {
       debugPrint('Error loading data: $e');
     }
   }
-
-
 
   @override
   void dispose() {
@@ -146,14 +145,12 @@ class _MatchFormPageState extends State<MatchFormPage> {
         opponentId: opponentName,
         dateTime: finalDateTime,
         locationType: _locationType,
-        matchday:
-            (_selectedTournament?.type == TournamentType.liga)
-                ? int.tryParse(_matchdayController.text)
-                : null,
-        phase:
-            (_selectedTournament?.type == TournamentType.copa)
-                ? (_isCustomPhase ? _phaseController.text : _selectedPhase)
-                : null,
+        matchday: (_selectedTournament?.type == TournamentType.liga)
+            ? int.tryParse(_matchdayController.text)
+            : null,
+        phase: (_selectedTournament?.type == TournamentType.copa)
+            ? (_isCustomPhase ? _phaseController.text : _selectedPhase)
+            : null,
         homeScore: widget.match?.homeScore ?? 0,
         awayScore: widget.match?.awayScore ?? 0,
       );
@@ -169,9 +166,9 @@ class _MatchFormPageState extends State<MatchFormPage> {
     } catch (e) {
       if (mounted) {
         setState(() => _isSaving = false);
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Error al guardar el partido: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error al guardar el partido: $e')),
+        );
       }
     }
   }
@@ -240,7 +237,11 @@ class _MatchFormPageState extends State<MatchFormPage> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         DropdownButtonFormField<String>(
-          value: _isAddingNewTeam ? 'NEW' : (_opponentController.text.isEmpty ? null : _opponentController.text),
+          initialValue: _isAddingNewTeam
+              ? 'NEW'
+              : (_opponentController.text.isEmpty
+                    ? null
+                    : _opponentController.text),
           decoration: const InputDecoration(
             labelText: 'EQUIPO OPONENTE',
             prefixIcon: Icon(Icons.shield),
@@ -268,7 +269,8 @@ class _MatchFormPageState extends State<MatchFormPage> {
               }
             });
           },
-          validator: (v) => (v == null && !_isAddingNewTeam) ? 'Requerido' : null,
+          validator: (v) =>
+              (v == null && !_isAddingNewTeam) ? 'Requerido' : null,
         ),
         if (_isAddingNewTeam) ...[
           const SizedBox(height: 12),
@@ -292,17 +294,21 @@ class _MatchFormPageState extends State<MatchFormPage> {
     if (_selectedTournament!.type == TournamentType.liga) {
       return Row(
         children: [
-          const Text('JORNADA: ', style: TextStyle(fontWeight: FontWeight.bold)),
+          const Text(
+            'JORNADA: ',
+            style: TextStyle(fontWeight: FontWeight.bold),
+          ),
           const SizedBox(width: 12),
           Expanded(
             child: DropdownButtonFormField<int>(
-              value: int.tryParse(_matchdayController.text) ?? 1,
+              initialValue: int.tryParse(_matchdayController.text) ?? 1,
               decoration: const InputDecoration(border: OutlineInputBorder()),
               items: List.generate(
                 30,
                 (i) => DropdownMenuItem(value: i + 1, child: Text('${i + 1}')),
               ),
-              onChanged: (val) => setState(() => _matchdayController.text = val.toString()),
+              onChanged: (val) =>
+                  setState(() => _matchdayController.text = val.toString()),
             ),
           ),
         ],
@@ -319,12 +325,17 @@ class _MatchFormPageState extends State<MatchFormPage> {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('FASE DEL TORNEO: ', style: TextStyle(fontWeight: FontWeight.bold)),
+          const Text(
+            'FASE DEL TORNEO: ',
+            style: TextStyle(fontWeight: FontWeight.bold),
+          ),
           const SizedBox(height: 8),
           DropdownButtonFormField<String>(
-            value: _isCustomPhase ? 'Otros' : _selectedPhase,
+            initialValue: _isCustomPhase ? 'Otros' : _selectedPhase,
             decoration: const InputDecoration(border: OutlineInputBorder()),
-            items: phases.map((p) => DropdownMenuItem(value: p, child: Text(p))).toList(),
+            items: phases
+                .map((p) => DropdownMenuItem(value: p, child: Text(p)))
+                .toList(),
             onChanged: (val) {
               setState(() {
                 if (val == 'Otros') {
@@ -355,7 +366,7 @@ class _MatchFormPageState extends State<MatchFormPage> {
 
   Widget _buildTournamentDropdown() {
     return DropdownButtonFormField<String>(
-      value: _selectedTournamentId,
+      initialValue: _selectedTournamentId,
       decoration: const InputDecoration(
         labelText: 'TORNEO',
         prefixIcon: Icon(Icons.emoji_events),

@@ -21,10 +21,12 @@ class TeamListPage extends StatelessWidget {
       body: FutureBuilder<List<Team>>(
         future: context.read<TeamRepository>().getTeams(),
         builder: (context, snapshot) {
-          if (!snapshot.hasData)
+          if (!snapshot.hasData) {
             return const Center(child: CircularProgressIndicator());
-          if (snapshot.data!.isEmpty)
+          }
+          if (snapshot.data!.isEmpty) {
             return const Center(child: Text('No se han encontrado equipos.'));
+          }
 
           final teams = snapshot.data!;
 
@@ -43,7 +45,8 @@ class TeamListPage extends StatelessWidget {
                     backgroundColor: team.isOwnTeam
                         ? AppColors.nflGold
                         : AppColors.primaryBlue,
-                    backgroundImage: (team.logoUrl != null && team.logoUrl!.isNotEmpty)
+                    backgroundImage:
+                        (team.logoUrl != null && team.logoUrl!.isNotEmpty)
                         ? NetworkImage(team.logoUrl!)
                         : null,
                     child: (team.logoUrl == null || team.logoUrl!.isEmpty)
@@ -63,14 +66,20 @@ class TeamListPage extends StatelessWidget {
                       ),
                       if (team.shortName != null && team.shortName!.isNotEmpty)
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 6,
+                            vertical: 2,
+                          ),
                           decoration: BoxDecoration(
                             color: Colors.white10,
                             borderRadius: BorderRadius.circular(4),
                           ),
                           child: Text(
                             team.shortName!,
-                            style: const TextStyle(fontSize: 10, color: Colors.grey),
+                            style: const TextStyle(
+                              fontSize: 10,
+                              color: Colors.grey,
+                            ),
                           ),
                         ),
                     ],
@@ -84,17 +93,29 @@ class TeamListPage extends StatelessWidget {
                             fontSize: 10,
                           ),
                         )
-                      : const Text('EQUIPO RIVAL', style: TextStyle(fontSize: 10)),
+                      : const Text(
+                          'EQUIPO RIVAL',
+                          style: TextStyle(fontSize: 10),
+                        ),
                   trailing: team.isOwnTeam
                       ? const Icon(Icons.check_circle, color: AppColors.nflGold)
                       : IconButton(
-                          icon: const Icon(Icons.star_border, color: Colors.grey),
+                          icon: const Icon(
+                            Icons.star_border,
+                            color: Colors.grey,
+                          ),
                           onPressed: () async {
-                            await context.read<TeamRepository>().setAsOwnTeam(team.id);
+                            await context.read<TeamRepository>().setAsOwnTeam(
+                              team.id,
+                            );
                             // Refresh
                             if (context.mounted) {
                               ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(content: Text('${team.name} ahora es tu equipo')),
+                                SnackBar(
+                                  content: Text(
+                                    '${team.name} ahora es tu equipo',
+                                  ),
+                                ),
                               );
                               // Trigger state update if using Bloc, or just force rebuild
                               context.read<AppBloc>().add(InitializeApp());

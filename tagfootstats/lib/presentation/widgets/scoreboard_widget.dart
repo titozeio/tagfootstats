@@ -6,6 +6,8 @@ class ScoreboardWidget extends StatelessWidget {
   final String awayTeamName;
   final int homeScore;
   final int awayScore;
+  final String? homeTeamId;
+  final String? awayTeamId;
   final String quarter;
   final String timeLeft;
 
@@ -15,6 +17,8 @@ class ScoreboardWidget extends StatelessWidget {
     required this.awayTeamName,
     required this.homeScore,
     required this.awayScore,
+    this.homeTeamId,
+    this.awayTeamId,
     this.quarter = '1Q',
     this.timeLeft = '15:00',
   });
@@ -94,20 +98,32 @@ class ScoreboardWidget extends StatelessWidget {
   }
 
   Widget _buildScoreText(int score) {
-    return Text(
-      score.toString().padLeft(2, '0'),
-      style: const TextStyle(
-        fontWeight: FontWeight.w900,
-        fontSize: 42,
-        color: Colors.white,
-        fontFamily: 'Roboto', // Or any bold condensed font
-        letterSpacing: -2,
+    return AnimatedSwitcher(
+      duration: const Duration(milliseconds: 500),
+      transitionBuilder: (Widget child, Animation<double> animation) {
+        return ScaleTransition(scale: animation, child: child);
+      },
+      child: Text(
+        score.toString().padLeft(2, '0'),
+        key: ValueKey<int>(score),
+        style: const TextStyle(
+          fontWeight: FontWeight.w900,
+          fontSize: 42,
+          color: Colors.white,
+          fontFamily: 'Roboto',
+          letterSpacing: -2,
+        ),
       ),
     );
   }
 
   Widget _buildTeamName(String name, bool isHome) {
-    return Text(
+    final teamId = isHome ? homeTeamId : awayTeamId;
+    final heroTag = teamId != null
+        ? 'team_logo_$teamId'
+        : (isHome ? null : 'opponent_$name');
+
+    Widget text = Text(
       name.toUpperCase(),
       textAlign: isHome ? TextAlign.left : TextAlign.right,
       maxLines: 1,
@@ -119,6 +135,11 @@ class ScoreboardWidget extends StatelessWidget {
         letterSpacing: 1,
       ),
     );
+
+    if (heroTag != null) {
+      return Hero(tag: heroTag, child: text);
+    }
+    return text;
   }
 
   Widget _buildGameInfo() {

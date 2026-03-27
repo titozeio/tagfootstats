@@ -66,12 +66,15 @@ class MatchSummaryCard extends StatelessWidget {
   Widget _buildTeam(String name, bool isHighlight, int score) {
     return Column(
       children: [
-        Text(
-          name.toUpperCase(),
-          style: TextStyle(
-            color: isHighlight ? AppColors.nflGold : Colors.white,
-            fontWeight: isHighlight ? FontWeight.w900 : FontWeight.bold,
-            fontSize: 14,
+        Hero(
+          tag: isHighlight ? 'team_logo_${ownTeam.id}' : 'opponent_${name}',
+          child: Text(
+            name.toUpperCase(),
+            style: TextStyle(
+              color: isHighlight ? AppColors.nflGold : Colors.white,
+              fontWeight: isHighlight ? FontWeight.w900 : FontWeight.bold,
+              fontSize: 14,
+            ),
           ),
         ),
         const SizedBox(height: 8),

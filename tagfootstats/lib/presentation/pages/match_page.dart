@@ -10,8 +10,10 @@ import 'package:tagfootstats/domain/repositories/player_repository.dart';
 import 'package:tagfootstats/domain/repositories/team_repository.dart';
 import 'package:tagfootstats/domain/usecases/add_play_to_match.dart';
 import 'package:tagfootstats/presentation/bloc/match/match_bloc.dart';
+import 'package:tagfootstats/presentation/bloc/app/app_bloc.dart';
 import 'package:tagfootstats/presentation/widgets/play_entry_form.dart';
 import 'package:tagfootstats/presentation/widgets/scoreboard_widget.dart';
+import 'package:tagfootstats/core/utils/feedback_utils.dart';
 
 class MatchPage extends StatelessWidget {
   final String matchId;
@@ -66,6 +68,9 @@ class MatchView extends StatelessWidget {
                       awayTeamName: state.match.opponentId,
                       homeScore: state.match.homeScore,
                       awayScore: state.match.awayScore,
+                      homeTeamId: (context.read<AppBloc>().state as AppReady)
+                          .ownTeam
+                          .id,
                       timeLeft: _calculateTimeLeft(state.plays),
                     ),
                     Expanded(
@@ -99,7 +104,9 @@ class MatchView extends StatelessWidget {
               ),
             );
           }
-          return const Center(child: Text('Inicializa un partido para empezar.'));
+          return const Center(
+            child: Text('Inicializa un partido para empezar.'),
+          );
         },
       ),
     );
@@ -125,17 +132,14 @@ class MatchView extends StatelessWidget {
       }
     } catch (e) {
       if (context.mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Error al inicializar: $e')));
+        FeedbackUtils.showError(context, 'Error al inicializar: $e');
       }
     }
   }
 
   String _calculateTimeLeft(List<Play> plays) {
     if (plays.isEmpty) return '00:00';
-    final maxMin =
-        plays.map((p) => p.minute).reduce((a, b) => a > b ? a : b);
+    final maxMin = plays.map((p) => p.minute).reduce((a, b) => a > b ? a : b);
     return '${maxMin.toString().padLeft(2, '0')}:00';
   }
 
@@ -281,8 +285,9 @@ class MatchView extends StatelessWidget {
           color: AppColors.surfaceDark,
           child: ListTile(
             leading: CircleAvatar(
-              backgroundColor:
-                  isOffense ? AppColors.primaryBlue : AppColors.accentRed,
+              backgroundColor: isOffense
+                  ? AppColors.primaryBlue
+                  : AppColors.accentRed,
               child: Text(
                 play.points > 0 ? '+${play.points}' : '0',
                 style: const TextStyle(
@@ -305,12 +310,17 @@ class MatchView extends StatelessWidget {
                 ),
                 if (play.involvedPlayerIds.isNotEmpty)
                   FutureBuilder(
-                    future: Future.wait(play.involvedPlayerIds.map(
-                      (id) => context.read<PlayerRepository>().getPlayerById(id),
-                    )),
+                    future: Future.wait(
+                      play.involvedPlayerIds.map(
+                        (id) =>
+                            context.read<PlayerRepository>().getPlayerById(id),
+                      ),
+                    ),
                     builder: (context, snapshot) {
                       if (snapshot.hasData) {
-                        final players = snapshot.data!.whereType<Player>().toList();
+                        final players = snapshot.data!
+                            .whereType<Player>()
+                            .toList();
                         return Text(
                           'JUGADORES: ${players.map((p) => "#${p.dorsal}").join(" ")}',
                           style: const TextStyle(

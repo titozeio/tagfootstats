@@ -35,8 +35,9 @@ class PlayerListPage extends StatelessWidget {
     return FutureBuilder<List<Team>>(
       future: context.read<TeamRepository>().getTeams(),
       builder: (context, snapshot) {
-        if (!snapshot.hasData)
+        if (!snapshot.hasData) {
           return const Center(child: CircularProgressIndicator());
+        }
         final teams = snapshot.data!;
         return ListView.builder(
           itemCount: teams.length,
@@ -57,10 +58,14 @@ class PlayerListPage extends StatelessWidget {
     return FutureBuilder<List<Player>>(
       future: context.read<PlayerRepository>().getPlayersByTeam(teamId),
       builder: (context, snapshot) {
-        if (!snapshot.hasData)
+        if (!snapshot.hasData) {
           return const Center(child: CircularProgressIndicator());
-        if (snapshot.data!.isEmpty)
-          return const Center(child: Text('No se han encontrado jugadores para este equipo.'));
+        }
+        if (snapshot.data!.isEmpty) {
+          return const Center(
+            child: Text('No se han encontrado jugadores para este equipo.'),
+          );
+        }
 
         final players = snapshot.data!;
         return ListView.builder(
@@ -77,14 +82,20 @@ class PlayerListPage extends StatelessWidget {
                       radius: 25,
                       backgroundColor: Colors.white12,
                       child: ClipOval(
-                        child: (player.photoUrl != null && player.photoUrl!.trim().isNotEmpty)
+                        child:
+                            (player.photoUrl != null &&
+                                player.photoUrl!.trim().isNotEmpty)
                             ? Image.network(
                                 player.photoUrl!.trim(),
                                 width: 50,
                                 height: 50,
                                 fit: BoxFit.cover,
                                 errorBuilder: (context, error, stackTrace) =>
-                                    const Icon(Icons.broken_image, size: 20, color: Colors.white24),
+                                    const Icon(
+                                      Icons.broken_image,
+                                      size: 20,
+                                      color: Colors.white24,
+                                    ),
                               )
                             : const Icon(Icons.person, color: Colors.white30),
                       ),
@@ -93,10 +104,16 @@ class PlayerListPage extends StatelessWidget {
                       right: 0,
                       bottom: 0,
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 6,
+                          vertical: 2,
+                        ),
                         decoration: BoxDecoration(
                           color: AppColors.primaryBlue,
-                          border: Border.all(color: AppColors.nflGold, width: 2),
+                          border: Border.all(
+                            color: AppColors.nflGold,
+                            width: 2,
+                          ),
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Text(
@@ -114,18 +131,24 @@ class PlayerListPage extends StatelessWidget {
               ),
               title: Text(
                 '${player.firstName} ${player.lastName}'.toUpperCase(),
-                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 13,
+                ),
               ),
               subtitle: Row(
                 children: [
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 6,
+                      vertical: 2,
+                    ),
                     decoration: BoxDecoration(
                       color: player.position == PlayerPosition.offense
                           ? AppColors.primaryBlue.withOpacity(0.3)
                           : player.position == PlayerPosition.defense
-                              ? AppColors.accentRed.withOpacity(0.3)
-                              : Colors.white12,
+                          ? AppColors.accentRed.withOpacity(0.3)
+                          : Colors.white12,
                       borderRadius: BorderRadius.circular(4),
                     ),
                     child: Text(

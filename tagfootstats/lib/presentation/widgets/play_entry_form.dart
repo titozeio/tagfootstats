@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../core/theme/app_colors.dart';
+import '../../core/utils/feedback_utils.dart';
 import '../../domain/entities/play.dart';
 import '../../domain/entities/player.dart';
 
@@ -125,34 +126,45 @@ class _PlayEntryFormState extends State<PlayEntryForm> {
           ),
         ),
         const SizedBox(height: 12),
-        ...lastThree.map((p) => Container(
-          margin: const EdgeInsets.only(bottom: 8),
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.05),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Row(
-            children: [
-              Text(
-                '${p.minute}\'',
-                style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.nflGold),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Text(
-                  '${p.action} - ${p.outcome}'.toUpperCase(),
-                  style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold),
-                ),
-              ),
-              if (p.points > 0)
+        ...lastThree.map(
+          (p) => Container(
+            margin: const EdgeInsets.only(bottom: 8),
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.05),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Row(
+              children: [
                 Text(
-                  '+${p.points}',
-                  style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.green),
+                  '${p.minute}\'',
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.nflGold,
+                  ),
                 ),
-            ],
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    '${p.action} - ${p.outcome}'.toUpperCase(),
+                    style: const TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                if (p.points > 0)
+                  Text(
+                    '+${p.points}',
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.green,
+                    ),
+                  ),
+              ],
+            ),
           ),
-        )),
+        ),
       ],
     );
   }
@@ -219,7 +231,9 @@ class _PlayEntryFormState extends State<PlayEntryForm> {
                   color: isSelected ? AppColors.nflGold : Colors.black26,
                   borderRadius: BorderRadius.circular(8),
                   border: Border.all(
-                    color: isSelected ? AppColors.nflGold : AppColors.glassBorder,
+                    color: isSelected
+                        ? AppColors.nflGold
+                        : AppColors.glassBorder,
                   ),
                 ),
                 child: Center(
@@ -570,7 +584,8 @@ class _PlayEntryFormState extends State<PlayEntryForm> {
 
               final playerIds = <String>[];
               if (_selectedPlayerId != null) playerIds.add(_selectedPlayerId!);
-              if (_selectedPlayer2Id != null) playerIds.add(_selectedPlayer2Id!);
+              if (_selectedPlayer2Id != null)
+                playerIds.add(_selectedPlayer2Id!);
 
               widget.onPlayAdded(
                 _selectedAction!,
@@ -581,6 +596,14 @@ class _PlayEntryFormState extends State<PlayEntryForm> {
                 _selectedDown,
                 playerIds,
               );
+              final playDescription = points > 0
+                  ? '$outcome (+ $points PTS)'
+                  : outcome;
+              FeedbackUtils.showSuccess(
+                context,
+                'JUGADA REGISTRADA: $playDescription',
+              );
+
               _resetForm();
             }
           : null,

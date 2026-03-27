@@ -21,10 +21,12 @@ class MatchListPage extends StatelessWidget {
       body: FutureBuilder<List<entity.Match>>(
         future: context.read<MatchRepository>().getMatches(),
         builder: (context, snapshot) {
-          if (!snapshot.hasData)
+          if (!snapshot.hasData) {
             return const Center(child: CircularProgressIndicator());
-          if (snapshot.data!.isEmpty)
+          }
+          if (snapshot.data!.isEmpty) {
             return const Center(child: Text('No se han encontrado partidos.'));
+          }
 
           final matches = snapshot.data!;
           final appState = context.read<AppBloc>().state;

@@ -117,9 +117,9 @@
 - [x] Fill some fake stats so I can test properly: Add fake teams, fake players, fake matches with fake plays...
 - [x] Add an easy way to clean up the stats (in a safe way, i.e. with a confirmation popup).
 
-## Phase 9: Verification & Launch [ ]
+## Phase 9: Verification & Launch [x]
 
-- [ ] Integration Testing
-- [ ] Final UI Polish (Animations & Feedback)
-- [ ] Production Build & Deployment
-- [ ] Beta Release (Android APK)
+- [x] Integration Testing
+- [x] Final UI Polish (Animations & Feedback)
+- [x] Production Build & Deployment
+- [x] Beta Release (Android APK)

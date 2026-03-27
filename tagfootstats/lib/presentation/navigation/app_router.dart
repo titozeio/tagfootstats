@@ -147,10 +147,11 @@ class TeamFormLoader extends StatelessWidget {
     return FutureBuilder(
       future: context.read<TeamRepository>().getTeamById(id),
       builder: (context, snapshot) {
-        if (!snapshot.hasData)
+        if (!snapshot.hasData) {
           return const Scaffold(
             body: Center(child: CircularProgressIndicator()),
           );
+        }
         return TeamFormPage(team: snapshot.data as Team);
       },
     );

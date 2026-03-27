@@ -68,8 +68,9 @@ class _TournamentFormPageState extends State<TournamentFormPage> {
 
   @override
   Widget build(BuildContext context) {
-    if (_isLoading)
+    if (_isLoading) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
 
     return Scaffold(
       appBar: AppBar(
@@ -100,7 +101,7 @@ class _TournamentFormPageState extends State<TournamentFormPage> {
               ),
               const SizedBox(height: 24),
               DropdownButtonFormField<TournamentType>(
-                value: _type,
+                initialValue: _type,
                 decoration: const InputDecoration(
                   labelText: 'TIPO',
                   border: OutlineInputBorder(),
@@ -380,7 +381,10 @@ class _TournamentFormPageState extends State<TournamentFormPage> {
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('ELIMINAR', style: TextStyle(color: AppColors.accentRed)),
+            child: const Text(
+              'ELIMINAR',
+              style: TextStyle(color: AppColors.accentRed),
+            ),
           ),
         ],
       ),
@@ -396,8 +400,9 @@ class _TournamentFormPageState extends State<TournamentFormPage> {
     final allMatches = await context.read<MatchRepository>().getMatches();
     // Filter out matches already in this tournament and matches from other tournaments
     // (A match can only be in one tournament according to the entity)
-    final availableMatches =
-        allMatches.where((m) => m.tournamentId != widget.id).toList();
+    final availableMatches = allMatches
+        .where((m) => m.tournamentId != widget.id)
+        .toList();
 
     if (!mounted) return;
 
@@ -428,7 +433,9 @@ class _TournamentFormPageState extends State<TournamentFormPage> {
                       homeScore: match.homeScore,
                       awayScore: match.awayScore,
                     );
-                    await context.read<MatchRepository>().saveMatch(updatedMatch);
+                    await context.read<MatchRepository>().saveMatch(
+                      updatedMatch,
+                    );
                     if (mounted) {
                       Navigator.pop(context);
                       _loadData();
@@ -446,6 +453,8 @@ class _TournamentFormPageState extends State<TournamentFormPage> {
   Future<void> _createNewMatch() async {
     // Navigate to match form with pre-filled tournament ID
     // We can use query parameters or state depending on how MatchFormPage is built
-    context.push('/matches/new?tournamentId=${widget.id}').then((_) => _loadData());
+    context
+        .push('/matches/new?tournamentId=${widget.id}')
+        .then((_) => _loadData());
   }
 }

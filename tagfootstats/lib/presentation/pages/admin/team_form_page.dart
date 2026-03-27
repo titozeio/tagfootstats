@@ -28,9 +28,12 @@ class _TeamFormPageState extends State<TeamFormPage> {
   void initState() {
     super.initState();
     _nameController = TextEditingController(text: widget.team?.name ?? '');
-    _shortNameController =
-        TextEditingController(text: widget.team?.shortName ?? '');
-    _logoUrlController = TextEditingController(text: widget.team?.logoUrl ?? '');
+    _shortNameController = TextEditingController(
+      text: widget.team?.shortName ?? '',
+    );
+    _logoUrlController = TextEditingController(
+      text: widget.team?.logoUrl ?? '',
+    );
     _isOwnTeam = widget.team?.isOwnTeam ?? widget.isInitialSetup;
   }
 
@@ -38,7 +41,9 @@ class _TeamFormPageState extends State<TeamFormPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.isInitialSetup ? 'CONFIGURA TU EQUIPO' : 'EDITAR EQUIPO'),
+        title: Text(
+          widget.isInitialSetup ? 'CONFIGURA TU EQUIPO' : 'EDITAR EQUIPO',
+        ),
         actions: [
           if (!widget.isInitialSetup && widget.team != null && !_isSaving)
             IconButton(
@@ -86,11 +91,14 @@ class _TeamFormPageState extends State<TeamFormPage> {
               const SizedBox(height: 16),
               SwitchListTile(
                 title: const Text('EQUIPO DEL USUARIO'),
-                subtitle: const Text('Solo un equipo puede ser marcado como principal'),
+                subtitle: const Text(
+                  'Solo un equipo puede ser marcado como principal',
+                ),
                 value: _isOwnTeam,
-                activeColor: AppColors.nflGold,
-                onChanged:
-                    _isSaving ? null : (val) => setState(() => _isOwnTeam = val),
+                activeThumbColor: AppColors.nflGold,
+                onChanged: _isSaving
+                    ? null
+                    : (val) => setState(() => _isOwnTeam = val),
               ),
               const SizedBox(height: 24),
               if (_isSaving)
@@ -180,10 +188,13 @@ class _TeamFormPageState extends State<TeamFormPage> {
           // We still need to save everything else
         }
 
-        await context.read<TeamRepository>().saveTeam(team).timeout(
-          const Duration(seconds: 15),
-          onTimeout: () => throw Exception('TIEMPO DE ESPERA AGOTADO.'),
-        );
+        await context
+            .read<TeamRepository>()
+            .saveTeam(team)
+            .timeout(
+              const Duration(seconds: 15),
+              onTimeout: () => throw Exception('TIEMPO DE ESPERA AGOTADO.'),
+            );
 
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
