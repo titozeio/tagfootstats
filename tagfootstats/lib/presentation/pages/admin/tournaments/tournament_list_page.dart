@@ -12,10 +12,10 @@ class TournamentListPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('TOURNAMENTS')),
+      appBar: AppBar(title: const Text('TORNEOS')),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => context.push('/tournaments/new'),
-        label: const Text('NEW TOURNAMENT'),
+        label: const Text('NUEVO TORNEO'),
         icon: const Icon(Icons.add),
       ),
       body: FutureBuilder<List<Tournament>>(
@@ -24,7 +24,7 @@ class TournamentListPage extends StatelessWidget {
           if (!snapshot.hasData)
             return const Center(child: CircularProgressIndicator());
           if (snapshot.data!.isEmpty)
-            return const Center(child: Text('No tournaments found.'));
+            return const Center(child: Text('No se han encontrado torneos.'));
 
           final tournaments = snapshot.data!;
 

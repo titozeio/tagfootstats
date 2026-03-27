@@ -57,7 +57,7 @@ class _PlayerFormPageState extends State<PlayerFormPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.id == null ? 'NEW PLAYER' : 'EDIT PLAYER'),
+        title: Text(widget.id == null ? 'NUEVO JUGADOR' : 'EDITAR JUGADOR'),
         actions: [
           if (widget.id != null)
             IconButton(
@@ -75,19 +75,19 @@ class _PlayerFormPageState extends State<PlayerFormPage> {
               TextFormField(
                 controller: _firstNameController,
                 decoration: const InputDecoration(
-                  labelText: 'FIRST NAME',
+                  labelText: 'NOMBRE',
                   border: OutlineInputBorder(),
                 ),
-                validator: (v) => v?.isEmpty ?? true ? 'Required' : null,
+                validator: (v) => v?.isEmpty ?? true ? 'Requerido' : null,
               ),
               const SizedBox(height: 16),
               TextFormField(
                 controller: _lastNameController,
                 decoration: const InputDecoration(
-                  labelText: 'LAST NAME',
+                  labelText: 'APELLIDO',
                   border: OutlineInputBorder(),
                 ),
-                validator: (v) => v?.isEmpty ?? true ? 'Required' : null,
+                validator: (v) => v?.isEmpty ?? true ? 'Requerido' : null,
               ),
               const SizedBox(height: 16),
               TextFormField(
@@ -97,7 +97,7 @@ class _PlayerFormPageState extends State<PlayerFormPage> {
                   border: OutlineInputBorder(),
                 ),
                 keyboardType: TextInputType.number,
-                validator: (v) => v?.isEmpty ?? true ? 'Required' : null,
+                validator: (v) => v?.isEmpty ?? true ? 'Requerido' : null,
               ),
               const SizedBox(height: 32),
               ElevatedButton(
@@ -106,7 +106,7 @@ class _PlayerFormPageState extends State<PlayerFormPage> {
                   minimumSize: const Size.fromHeight(50),
                 ),
                 child: Text(
-                  widget.id == null ? 'CREATE PLAYER' : 'SAVE CHANGES',
+                  widget.id == null ? 'CREAR JUGADOR' : 'GUARDAR CAMBIOS',
                 ),
               ),
             ],
@@ -135,16 +135,16 @@ class _PlayerFormPageState extends State<PlayerFormPage> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (c) => AlertDialog(
-        title: const Text('DELETE PLAYER?'),
+        title: const Text('¿ELIMINAR JUGADOR?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(c, false),
-            child: const Text('CANCEL'),
+            child: const Text('CANCELAR'),
           ),
           TextButton(
             onPressed: () => Navigator.pop(c, true),
             child: const Text(
-              'DELETE',
+              'ELIMINAR',
               style: TextStyle(color: AppColors.accentRed),
             ),
           ),

@@ -39,7 +39,7 @@ class _LiveTagState extends State<LiveTag> with SingleTickerProviderStateMixin {
           border: Border.all(color: Colors.green),
         ),
         child: const Text(
-          'LIVE',
+          'EN VIVO',
           style: TextStyle(
             color: Colors.green,
             fontSize: 10,

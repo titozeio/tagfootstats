@@ -64,7 +64,7 @@ class HomePage extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Text(
-              'LAST MATCH',
+              'ÚLTIMO PARTIDO',
               style: TextStyle(fontWeight: FontWeight.w900, fontSize: 18),
             ),
             const SizedBox(height: 8),
@@ -90,13 +90,13 @@ class HomePage extends StatelessWidget {
       children: [
         _buildMenuButton(
           context,
-          'TOURNAMENTS',
+          'TORNEOS',
           Icons.emoji_events,
           '/tournaments',
         ),
-        _buildMenuButton(context, 'TEAMS', Icons.groups, '/teams'),
-        _buildMenuButton(context, 'PLAYERS', Icons.person, '/players'),
-        _buildMenuButton(context, 'MATCHES', Icons.scoreboard, '/matches'),
+        _buildMenuButton(context, 'EQUIPOS', Icons.groups, '/teams'),
+        _buildMenuButton(context, 'JUGADORES', Icons.person, '/players'),
+        _buildMenuButton(context, 'PARTIDOS', Icons.scoreboard, '/matches'),
       ],
     );
   }

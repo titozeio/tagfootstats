@@ -76,7 +76,7 @@ class _MatchFormPageState extends State<MatchFormPage> {
     if (!_formKey.currentState!.validate()) return;
     if (_selectedTournamentId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select a tournament')),
+        const SnackBar(content: Text('Por favor, selecciona un torneo')),
       );
       return;
     }
@@ -142,7 +142,7 @@ class _MatchFormPageState extends State<MatchFormPage> {
         setState(() => _isSaving = false);
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text('Error saving match: $e')));
+        ).showSnackBar(SnackBar(content: Text('Error al guardar el partido: $e')));
       }
     }
   }
@@ -151,7 +151,7 @@ class _MatchFormPageState extends State<MatchFormPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.match == null ? 'NEW MATCH' : 'EDIT MATCH'),
+        title: Text(widget.match == null ? 'NUEVO PARTIDO' : 'EDITAR PARTIDO'),
       ),
       body: Form(
         key: _formKey,
@@ -175,7 +175,7 @@ class _MatchFormPageState extends State<MatchFormPage> {
                       controller: _matchdayController,
                       keyboardType: TextInputType.number,
                       decoration: const InputDecoration(
-                        labelText: 'MATCHDAY #',
+                        labelText: 'JORNADA #',
                       ),
                     ),
                   ),
@@ -184,7 +184,7 @@ class _MatchFormPageState extends State<MatchFormPage> {
                     child: TextFormField(
                       controller: _phaseController,
                       decoration: const InputDecoration(
-                        labelText: 'PHASE (e.g. Final)',
+                        labelText: 'FASE (ej. Final)',
                       ),
                     ),
                   ),
@@ -211,7 +211,7 @@ class _MatchFormPageState extends State<MatchFormPage> {
                         ),
                       )
                     : const Text(
-                        'START RECORDING',
+                        'EMPEZAR GRABACIÓN',
                         style: TextStyle(
                           fontWeight: FontWeight.w900,
                           fontSize: 18,
@@ -251,10 +251,10 @@ class _MatchFormPageState extends State<MatchFormPage> {
           controller: controller,
           focusNode: focusNode,
           decoration: const InputDecoration(
-            labelText: 'OPPONENT NAME',
+            labelText: 'NOMBRE DEL OPONENTE',
             prefixIcon: Icon(Icons.shield),
           ),
-          validator: (v) => v!.isEmpty ? 'Required' : null,
+          validator: (v) => v!.isEmpty ? 'Requerido' : null,
         );
       },
     );
@@ -268,15 +268,15 @@ class _MatchFormPageState extends State<MatchFormPage> {
         return DropdownButtonFormField<String>(
           value: _selectedTournamentId,
           decoration: const InputDecoration(
-            labelText: 'TOURNAMENT',
+            labelText: 'TORNEO',
             prefixIcon: Icon(Icons.emoji_events),
           ),
           items: tournaments
               .map((t) => DropdownMenuItem(value: t.id, child: Text(t.name)))
               .toList(),
           onChanged: (val) => setState(() => _selectedTournamentId = val),
-          hint: const Text('Select Tournament'),
-          validator: (v) => v == null ? 'Required' : null,
+          hint: const Text('Seleccionar Torneo'),
+          validator: (v) => v == null ? 'Requerido' : null,
         );
       },
     );
@@ -287,7 +287,7 @@ class _MatchFormPageState extends State<MatchFormPage> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Text(
-          'LOCATION',
+          'UBICACIÓN',
           style: TextStyle(
             fontSize: 12,
             fontWeight: FontWeight.bold,

@@ -73,7 +73,7 @@ class _TournamentFormPageState extends State<TournamentFormPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.id == null ? 'NEW TOURNAMENT' : 'EDIT TOURNAMENT'),
+        title: Text(widget.id == null ? 'NUEVO TORNEO' : 'EDITAR TORNEO'),
         actions: [
           if (widget.id != null)
             IconButton(
@@ -92,17 +92,17 @@ class _TournamentFormPageState extends State<TournamentFormPage> {
               TextFormField(
                 controller: _nameController,
                 decoration: const InputDecoration(
-                  labelText: 'TOURNAMENT NAME',
+                  labelText: 'NOMBRE DEL TORNEO',
                   border: OutlineInputBorder(),
                 ),
                 validator: (val) =>
-                    val == null || val.isEmpty ? 'Required' : null,
+                    val == null || val.isEmpty ? 'Requerido' : null,
               ),
               const SizedBox(height: 24),
               DropdownButtonFormField<TournamentType>(
                 value: _type,
                 decoration: const InputDecoration(
-                  labelText: 'TYPE',
+                  labelText: 'TIPO',
                   border: OutlineInputBorder(),
                 ),
                 items: TournamentType.values
@@ -117,19 +117,19 @@ class _TournamentFormPageState extends State<TournamentFormPage> {
               ),
               const SizedBox(height: 24),
               _buildDatePicker(
-                'START DATE',
+                'FECHA DE INICIO',
                 _startDate,
                 (date) => setState(() => _startDate = date),
               ),
               const SizedBox(height: 16),
               _buildDatePicker(
-                'END DATE',
+                'FECHA DE FIN',
                 _endDate,
                 (date) => setState(() => _endDate = date),
               ),
               const SizedBox(height: 32),
               const Text(
-                'TEAMS',
+                'EQUIPOS',
                 style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
               ),
               const SizedBox(height: 8),
@@ -138,7 +138,7 @@ class _TournamentFormPageState extends State<TournamentFormPage> {
               ElevatedButton.icon(
                 onPressed: _showAddTeamDialog,
                 icon: const Icon(Icons.group_add),
-                label: const Text('ADD EXISTING TEAM'),
+                label: const Text('AÑADIR EQUIPO EXISTENTE'),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primaryBlue,
                   foregroundColor: Colors.white,
@@ -151,7 +151,7 @@ class _TournamentFormPageState extends State<TournamentFormPage> {
                     child: TextFormField(
                       controller: _quickTeamController,
                       decoration: const InputDecoration(
-                        labelText: 'NEW QUICK TEAM NAME',
+                        labelText: 'NOMBRE DE NUEVO EQUIPO RÁPIDO',
                         border: OutlineInputBorder(),
                       ),
                     ),
@@ -169,7 +169,7 @@ class _TournamentFormPageState extends State<TournamentFormPage> {
               if (widget.id != null) ...[
                 const SizedBox(height: 32),
                 const Text(
-                  'MATCHES',
+                  'PARTIDOS',
                   style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                 ),
                 const SizedBox(height: 8),
@@ -181,7 +181,7 @@ class _TournamentFormPageState extends State<TournamentFormPage> {
                       child: ElevatedButton.icon(
                         onPressed: _showAddMatchDialog,
                         icon: const Icon(Icons.playlist_add),
-                        label: const Text('ADD EXISTING MATCH'),
+                        label: const Text('AÑADIR PARTIDO EXISTENTE'),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppColors.surfaceDark,
                           foregroundColor: Colors.white,
@@ -193,7 +193,7 @@ class _TournamentFormPageState extends State<TournamentFormPage> {
                       child: ElevatedButton.icon(
                         onPressed: _createNewMatch,
                         icon: const Icon(Icons.add_box),
-                        label: const Text('NEW MATCH'),
+                        label: const Text('NUEVO PARTIDO'),
                       ),
                     ),
                   ],
@@ -206,7 +206,7 @@ class _TournamentFormPageState extends State<TournamentFormPage> {
                   padding: const EdgeInsets.symmetric(vertical: 16),
                 ),
                 child: Text(
-                  widget.id == null ? 'CREATE TOURNAMENT' : 'SAVE CHANGES',
+                  widget.id == null ? 'CREAR TORNEO' : 'GUARDAR CAMBIOS',
                 ),
               ),
             ],
@@ -220,7 +220,7 @@ class _TournamentFormPageState extends State<TournamentFormPage> {
     return FutureBuilder(
       future: context.read<TeamRepository>().getTeamById(id),
       builder: (context, snapshot) {
-        final name = snapshot.data?.name ?? 'Loading...';
+        final name = snapshot.data?.name ?? 'Cargando...';
         return ListTile(
           title: Text(name),
           trailing: IconButton(
@@ -256,7 +256,7 @@ class _TournamentFormPageState extends State<TournamentFormPage> {
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: const Text('SELECT TEAM'),
+          title: const Text('SELECCIONAR EQUIPO'),
           content: SizedBox(
             width: double.maxFinite,
             child: ListView.builder(
@@ -325,19 +325,19 @@ class _TournamentFormPageState extends State<TournamentFormPage> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('DELETE TOURNAMENT?'),
+        title: const Text('¿ELIMINAR TORNEO?'),
         content: const Text(
-          'THIS ACTION IS IRREVERSIBLE. ALL MATCHES AND STATS ASSOCIATED WITH THIS TOURNAMENT WILL BE LOST.',
+          'ESTA ACCIÓN ES IRREVERSIBLE. TODOS LOS PARTIDOS Y ESTADÍSTICAS ASOCIADOS A ESTE TORNEO SE PERDERÁN.',
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('CANCEL'),
+            child: const Text('CANCELAR'),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
             child: const Text(
-              'DELETE',
+              'ELIMINAR',
               style: TextStyle(color: AppColors.accentRed),
             ),
           ),
@@ -358,7 +358,7 @@ class _TournamentFormPageState extends State<TournamentFormPage> {
         onTap: () => context.push('/matches/${match.id}'),
         leading: const Icon(Icons.scoreboard, color: AppColors.nflGold),
         title: Text('${match.homeScore} - ${match.awayScore}'),
-        subtitle: Text('VS ${match.opponentId}'),
+        subtitle: Text('CONTRA ${match.opponentId}'),
         trailing: IconButton(
           icon: const Icon(Icons.delete_outline, color: AppColors.accentRed),
           onPressed: () => _deleteMatch(match.id),
@@ -371,16 +371,16 @@ class _TournamentFormPageState extends State<TournamentFormPage> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('DELETE MATCH?'),
-        content: const Text('THIS WILL REMOVE THE MATCH PERMANENTLY.'),
+        title: const Text('¿ELIMINAR PARTIDO?'),
+        content: const Text('ESTO ELIMINARÁ EL PARTIDO PERMANENTEMENTE.'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('CANCEL'),
+            child: const Text('CANCELAR'),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('DELETE', style: TextStyle(color: AppColors.accentRed)),
+            child: const Text('ELIMINAR', style: TextStyle(color: AppColors.accentRed)),
           ),
         ],
       ),
@@ -405,7 +405,7 @@ class _TournamentFormPageState extends State<TournamentFormPage> {
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: const Text('SELECT MATCH'),
+          title: const Text('SELECCIONAR PARTIDO'),
           content: SizedBox(
             width: double.maxFinite,
             child: ListView.builder(
@@ -414,7 +414,7 @@ class _TournamentFormPageState extends State<TournamentFormPage> {
               itemBuilder: (context, index) {
                 final match = availableMatches[index];
                 return ListTile(
-                  title: Text('MATCH vs ${match.opponentId}'),
+                  title: Text('PARTIDO contra ${match.opponentId}'),
                   subtitle: Text(match.dateTime.toString()),
                   onTap: () async {
                     final updatedMatch = entity.Match(

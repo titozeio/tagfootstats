@@ -32,6 +32,7 @@
 
 - [x] The Home Screen in the desktop chrome version is humongous and has an uneeded scroll. Fix it to fit everything in the screen.
 - [x] In Home screen, the last match should be clickable/tappable and take the user to that match´s screen.
+- [x] The whole app should be in spanish by dafault. Change all existing texts and buttons, etc.
 
 ## Phase 6.1: Upgrades in the Tournaments screens [x]
 

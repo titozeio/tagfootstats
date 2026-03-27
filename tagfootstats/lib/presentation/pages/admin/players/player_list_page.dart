@@ -16,7 +16,7 @@ class PlayerListPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('PLAYERS'),
+        title: const Text('JUGADORES'),
         actions: [
           if (teamId != null)
             IconButton(
@@ -60,7 +60,7 @@ class PlayerListPage extends StatelessWidget {
         if (!snapshot.hasData)
           return const Center(child: CircularProgressIndicator());
         if (snapshot.data!.isEmpty)
-          return const Center(child: Text('No players found for this team.'));
+          return const Center(child: Text('No se han encontrado jugadores para este equipo.'));
 
         final players = snapshot.data!;
         return ListView.builder(

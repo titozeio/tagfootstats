@@ -56,7 +56,7 @@ class SplashPage extends StatelessWidget {
                             ElevatedButton(
                               onPressed: () =>
                                   context.read<AppBloc>().add(InitializeApp()),
-                              child: const Text('RETRY'),
+                              child: const Text('REINTENTAR'),
                             ),
                           ],
                         ),

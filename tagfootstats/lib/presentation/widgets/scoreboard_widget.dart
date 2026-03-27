@@ -163,7 +163,7 @@ class ScoreboardWidget extends StatelessWidget {
           ),
           const SizedBox(height: 2),
           const Text(
-            'CHRONO',
+            'CRONO',
             style: TextStyle(
               fontSize: 8,
               color: Colors.grey,

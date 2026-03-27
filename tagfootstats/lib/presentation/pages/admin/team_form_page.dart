@@ -31,7 +31,7 @@ class _TeamFormPageState extends State<TeamFormPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.isInitialSetup ? 'SETUP YOUR TEAM' : 'EDIT TEAM'),
+        title: Text(widget.isInitialSetup ? 'CONFIGURA TU EQUIPO' : 'EDITAR EQUIPO'),
         actions: [
           if (!widget.isInitialSetup && widget.team != null && !_isSaving)
             IconButton(
@@ -51,11 +51,11 @@ class _TeamFormPageState extends State<TeamFormPage> {
                 controller: _nameController,
                 enabled: !_isSaving,
                 decoration: const InputDecoration(
-                  labelText: 'TEAM NAME',
+                  labelText: 'NOMBRE DEL EQUIPO',
                   border: OutlineInputBorder(),
                 ),
                 validator: (val) =>
-                    val == null || val.isEmpty ? 'Required' : null,
+                    val == null || val.isEmpty ? 'Requerido' : null,
               ),
               const SizedBox(height: 24),
               if (_isSaving)
@@ -64,7 +64,7 @@ class _TeamFormPageState extends State<TeamFormPage> {
                 ElevatedButton(
                   onPressed: _submit,
                   child: Text(
-                    widget.isInitialSetup ? 'CREATE TEAM' : 'SAVE CHANGES',
+                    widget.isInitialSetup ? 'CREAR EQUIPO' : 'GUARDAR CAMBIOS',
                   ),
                 ),
               if (!widget.isInitialSetup &&
@@ -74,7 +74,7 @@ class _TeamFormPageState extends State<TeamFormPage> {
                 OutlinedButton.icon(
                   onPressed: () => context.push('/players/${widget.team!.id}'),
                   icon: const Icon(Icons.person),
-                  label: const Text('MANAGE PLAYERS'),
+                  label: const Text('GESTIONAR JUGADORES'),
                 ),
               ],
             ],
@@ -88,19 +88,19 @@ class _TeamFormPageState extends State<TeamFormPage> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('DELETE TEAM?'),
+        title: const Text('¿ELIMINAR EQUIPO?'),
         content: const Text(
-          'Are you sure you want to delete this team? All associated players and stats might be affected.',
+          '¿Estás seguro de que quieres eliminar este equipo? Todos los jugadores y estadísticas asociados podrían verse afectados.',
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('CANCEL'),
+            child: const Text('CANCELAR'),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
             child: const Text(
-              'DELETE',
+              'ELIMINAR',
               style: TextStyle(color: AppColors.accentRed),
             ),
           ),
@@ -137,13 +137,13 @@ class _TeamFormPageState extends State<TeamFormPage> {
             .timeout(
               const Duration(seconds: 15),
               onTimeout: () => throw Exception(
-                'SAVE TIMEOUT. Check internet or Firebase rules.',
+                'TIEMPO DE ESPERA AGOTADO. Comprueba tu conexión o las reglas de Firebase.',
               ),
             );
 
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('TEAM SAVED SUCCESSFULLY')),
+            const SnackBar(content: Text('EQUIPO GUARDADO CON ÉXITO')),
           );
           context.read<AppBloc>().add(InitializeApp());
         }

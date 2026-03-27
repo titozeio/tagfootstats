@@ -11,10 +11,10 @@ class TeamListPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('TEAMS')),
+      appBar: AppBar(title: const Text('EQUIPOS')),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => context.push('/teams/new'),
-        label: const Text('NEW TEAM'),
+        label: const Text('NUEVO EQUIPO'),
         icon: const Icon(Icons.add),
       ),
       body: FutureBuilder<List<Team>>(
@@ -23,7 +23,7 @@ class TeamListPage extends StatelessWidget {
           if (!snapshot.hasData)
             return const Center(child: CircularProgressIndicator());
           if (snapshot.data!.isEmpty)
-            return const Center(child: Text('No teams found.'));
+            return const Center(child: Text('No se han encontrado equipos.'));
 
           final teams = snapshot.data!;
 
@@ -48,7 +48,7 @@ class TeamListPage extends StatelessWidget {
                   ),
                   subtitle: team.isOwnTeam
                       ? const Text(
-                          'YOUR TEAM',
+                          'TU EQUIPO',
                           style: TextStyle(
                             color: AppColors.nflGold,
                             fontWeight: FontWeight.bold,

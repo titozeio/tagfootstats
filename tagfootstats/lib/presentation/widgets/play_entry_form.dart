@@ -97,7 +97,7 @@ class _PlayEntryFormState extends State<PlayEntryForm> {
         ),
         const SizedBox(width: 12),
         Text(
-          'NEW ${widget.phase.name.toUpperCase()} PLAY',
+          'NUEVA JUGADA DE ${widget.phase.name.toUpperCase()}',
           style: const TextStyle(
             fontWeight: FontWeight.w900,
             fontSize: 18,
@@ -113,7 +113,7 @@ class _PlayEntryFormState extends State<PlayEntryForm> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Text(
-          'INVOLVED PLAYER',
+          'JUGADOR INVOLUCRADO',
           style: TextStyle(
             fontSize: 12,
             fontWeight: FontWeight.bold,
@@ -141,7 +141,7 @@ class _PlayEntryFormState extends State<PlayEntryForm> {
               )
               .toList(),
           onChanged: (val) => setState(() => _selectedPlayerId = val),
-          hint: const Text('Select a player'),
+          hint: const Text('Selecciona un jugador'),
         ),
       ],
     );
@@ -150,7 +150,7 @@ class _PlayEntryFormState extends State<PlayEntryForm> {
   Widget _buildActionGrid() {
     final actions = widget.phase == PlayPhase.ataque
         ? ['PASE', 'CARRERA', 'SACK', 'FUMBLE']
-        : ['FLAG PULLED', 'SACK', 'INTERCEPT', 'BLITZER'];
+        : ['FLAG QUITADO', 'SACK', 'INTERCEPCIÓN', 'BLITZER'];
 
     return Wrap(
       spacing: 12,
@@ -189,7 +189,7 @@ class _PlayEntryFormState extends State<PlayEntryForm> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             const Text(
-              'YARDS Gained / Lost',
+              'YARDAS Ganadas / Perdidas',
               style: TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.bold,
@@ -234,7 +234,7 @@ class _PlayEntryFormState extends State<PlayEntryForm> {
         const SizedBox(width: 12),
         Expanded(
           child: _buildToggleButton(
-            'EXTRA PT',
+            'PTO EXTRA',
             _isExtraPoint,
             () => setState(() {
               _isExtraPoint = !_isExtraPoint;
@@ -302,7 +302,7 @@ class _PlayEntryFormState extends State<PlayEntryForm> {
               }
               if (_isExtraPoint) {
                 points = 1; // Default
-                outcome = 'EXTRA POINT';
+                outcome = 'PUNTO EXTRA';
               }
 
               widget.onPlayAdded(
@@ -324,7 +324,7 @@ class _PlayEntryFormState extends State<PlayEntryForm> {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       ),
       child: const Text(
-        'SUBMIT PLAY',
+        'REGISTRAR JUGADA',
         style: TextStyle(fontWeight: FontWeight.w900, fontSize: 18),
       ),
     );

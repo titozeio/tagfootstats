@@ -44,7 +44,7 @@ class MatchView extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('MATCH RECORDING'),
+        title: const Text('GRABACIÓN DEL PARTIDO'),
         actions: [
           IconButton(icon: const Icon(Icons.settings), onPressed: () {}),
         ],
@@ -61,7 +61,7 @@ class MatchView extends StatelessWidget {
                 return Column(
                   children: [
                     ScoreboardWidget(
-                      homeTeamName: 'OWN TEAM',
+                      homeTeamName: 'TU EQUIPO',
                       awayTeamName: state.match.opponentId,
                       homeScore: state.match.homeScore,
                       awayScore: state.match.awayScore,
@@ -91,13 +91,13 @@ class MatchView extends StatelessWidget {
                   if (state.message.contains('not found'))
                     ElevatedButton(
                       onPressed: () => _initializeDemoMatch(context),
-                      child: const Text('INITIALIZE DEMO MATCH'),
+                      child: const Text('INICIALIZAR PARTIDO DE PRUEBA'),
                     ),
                 ],
               ),
             );
           }
-          return const Center(child: Text('Initialize a match to start.'));
+          return const Center(child: Text('Inicializa un partido para empezar.'));
         },
       ),
     );
@@ -125,7 +125,7 @@ class MatchView extends StatelessWidget {
       if (context.mounted) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text('Error initializing: $e')));
+        ).showSnackBar(SnackBar(content: Text('Error al inicializar: $e')));
       }
     }
   }
@@ -137,8 +137,8 @@ class MatchView extends StatelessWidget {
         children: [
           const TabBar(
             tabs: [
-              Tab(icon: Icon(Icons.sports_football), text: 'OFFENSE'),
-              Tab(icon: Icon(Icons.shield), text: 'DEFENSE'),
+              Tab(icon: Icon(Icons.sports_football), text: 'ATAQUE'),
+              Tab(icon: Icon(Icons.shield), text: 'DEFENSA'),
             ],
             indicatorColor: AppColors.nflGold,
             labelColor: AppColors.nflGold,
@@ -167,7 +167,7 @@ class MatchView extends StatelessWidget {
               const Padding(
                 padding: EdgeInsets.all(16.0),
                 child: Text(
-                  'MATCH LOG',
+                  'REGISTRO DEL PARTIDO',
                   style: TextStyle(
                     fontWeight: FontWeight.w900,
                     color: Colors.grey,
@@ -187,8 +187,8 @@ class MatchView extends StatelessWidget {
               children: [
                 const TabBar(
                   tabs: [
-                    Tab(icon: Icon(Icons.sports_football), text: 'OFFENSE'),
-                    Tab(icon: Icon(Icons.shield), text: 'DEFENSE'),
+                    Tab(icon: Icon(Icons.sports_football), text: 'ATAQUE'),
+                    Tab(icon: Icon(Icons.shield), text: 'DEFENSA'),
                   ],
                   indicatorColor: AppColors.nflGold,
                   labelColor: AppColors.nflGold,

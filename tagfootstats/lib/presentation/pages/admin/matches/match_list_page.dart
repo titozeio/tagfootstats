@@ -12,10 +12,10 @@ class MatchListPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('MATCHES')),
+      appBar: AppBar(title: const Text('PARTIDOS')),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => context.push('/matches/new'),
-        label: const Text('NEW MATCH'),
+        label: const Text('NUEVO PARTIDO'),
         icon: const Icon(Icons.add),
       ),
       body: FutureBuilder<List<entity.Match>>(
@@ -24,7 +24,7 @@ class MatchListPage extends StatelessWidget {
           if (!snapshot.hasData)
             return const Center(child: CircularProgressIndicator());
           if (snapshot.data!.isEmpty)
-            return const Center(child: Text('No matches found.'));
+            return const Center(child: Text('No se han encontrado partidos.'));
 
           final matches = snapshot.data!;
           final appState = context.read<AppBloc>().state;
