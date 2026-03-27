@@ -36,7 +36,7 @@ class MainScaffold extends StatelessWidget {
               context.go('/tournaments');
               break;
             case 4:
-              // context.go('/settings');
+              context.go('/settings');
               break;
           }
         },

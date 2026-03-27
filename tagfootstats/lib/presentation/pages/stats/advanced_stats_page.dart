@@ -20,11 +20,13 @@ class AdvancedStatsPage extends StatelessWidget {
         appBar: AppBar(
           title: const Text('ESTADÍSTICAS AVANZADAS'),
           bottom: const TabBar(
+            labelColor: AppColors.nflGold,
+            unselectedLabelColor: Colors.white60,
+            indicatorColor: AppColors.nflGold,
             tabs: [
               Tab(text: 'EQUIPO'),
               Tab(text: 'JUGADORES'),
             ],
-            indicatorColor: AppColors.nflGold,
             labelStyle: TextStyle(fontWeight: FontWeight.bold),
           ),
         ),
@@ -331,12 +333,14 @@ class _PlayerStatsTabState extends State<_PlayerStatsTab> {
         children: [
           SingleChildScrollView(
             scrollDirection: Axis.horizontal,
-            child: DataTable(
-              sortColumnIndex: _sortColumnIndex,
-              sortAscending: _sortAscending,
-              columnSpacing: 20,
-              horizontalMargin: 16,
-              headingRowColor: WidgetStateProperty.all(Colors.white10),
+            child: ConstrainedBox(
+              constraints: BoxConstraints(minWidth: MediaQuery.of(context).size.width),
+              child: DataTable(
+                sortColumnIndex: _sortColumnIndex,
+                sortAscending: _sortAscending,
+                columnSpacing: 64,
+                horizontalMargin: 24,
+                headingRowColor: WidgetStateProperty.all(Colors.white10),
               columns: [
                 DataColumn(label: const Text('JUGADOR'), onSort: _sort),
                 DataColumn(label: const Text('PTS'), numeric: true, onSort: _sort),
@@ -398,10 +402,11 @@ class _PlayerStatsTabState extends State<_PlayerStatsTab> {
               }).toList(),
             ),
           ),
-        ],
-      ),
-    );
-  }
+        ),
+      ],
+    ),
+  );
+}
 }
 
 class _PlayerStats {

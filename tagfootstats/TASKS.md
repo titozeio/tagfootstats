@@ -66,6 +66,7 @@
 - [x] Fase debería ser un selector de fases(>Final, Seimifinal, Cuartos, Octavos, liguilla, y otros que habilitaría un campo de texto para añadir una jornada custom).
 
 ## Phase 6.3.5: Fixing stuff [ ]
+
 ## Phase 6.3.5: Fixing stuff [x]
 
 - [x] The log section of the matches is not working at all.
@@ -108,6 +109,13 @@
 - [x] Implement Team Metrics: TD Percentage, Turnover Differential, Success Rate.
 - [x] Implement Player Metrics: Share % (Involvement), Indiv Yards, Points.
 - [x] Implement Defensive Metrics: Total Sacks, Interceptions.
+
+## Phase 8.3: Several fixes and helpers [x]
+
+- [x] In the "Estadísticas avanzadas" Screen: "Equipo" and "Jugadores", when selected are not readable because of the color.
+- [x] In the "Estadísticas avanzadas" Screen: Make the grid of stats occupy the whole screen (in width).
+- [x] Fill some fake stats so I can test properly: Add fake teams, fake players, fake matches with fake plays...
+- [x] Add an easy way to clean up the stats (in a safe way, i.e. with a confirmation popup).
 
 ## Phase 9: Verification & Launch [ ]
 
