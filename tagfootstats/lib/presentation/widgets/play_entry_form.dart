@@ -18,6 +18,7 @@ class PlayEntryForm extends StatefulWidget {
   onPlayAdded;
   final int homeScore;
   final int awayScore;
+  final List<Play> recentPlays;
 
   const PlayEntryForm({
     super.key,
@@ -26,6 +27,7 @@ class PlayEntryForm extends StatefulWidget {
     required this.onPlayAdded,
     this.homeScore = 0,
     this.awayScore = 0,
+    this.recentPlays = const [],
   });
 
   @override
@@ -97,9 +99,61 @@ class _PlayEntryFormState extends State<PlayEntryForm> {
             _buildOutcomeToggles(),
             const SizedBox(height: 32),
             _buildSubmitButton(),
+            const SizedBox(height: 32),
+            _buildRecentPlaysSection(),
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildRecentPlaysSection() {
+    if (widget.recentPlays.isEmpty) return const SizedBox.shrink();
+
+    final lastThree = widget.recentPlays.reversed.take(3).toList();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'ACTIVIDAD RECIENTE',
+          style: TextStyle(
+            fontSize: 10,
+            fontWeight: FontWeight.bold,
+            color: Colors.white24,
+            letterSpacing: 1,
+          ),
+        ),
+        const SizedBox(height: 12),
+        ...lastThree.map((p) => Container(
+          margin: const EdgeInsets.only(bottom: 8),
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(0.05),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Row(
+            children: [
+              Text(
+                '${p.minute}\'',
+                style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.nflGold),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  '${p.action} - ${p.outcome}'.toUpperCase(),
+                  style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold),
+                ),
+              ),
+              if (p.points > 0)
+                Text(
+                  '+${p.points}',
+                  style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.green),
+                ),
+            ],
+          ),
+        )),
+      ],
     );
   }
 

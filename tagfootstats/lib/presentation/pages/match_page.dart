@@ -230,6 +230,7 @@ class MatchView extends StatelessWidget {
       players: state.players,
       homeScore: state.match.homeScore,
       awayScore: state.match.awayScore,
+      recentPlays: state.plays,
       onPlayAdded: (action, outcome, points, yardas, minute, down, players) {
         _onPlayAdded(
           context,
@@ -248,6 +249,22 @@ class MatchView extends StatelessWidget {
   }
 
   Widget _buildPlayList(MatchLoaded state) {
+    if (state.plays.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.list_alt, size: 64, color: Colors.white10),
+            const SizedBox(height: 16),
+            const Text(
+              'No hay jugadas registradas aún',
+              style: TextStyle(color: Colors.grey),
+            ),
+          ],
+        ),
+      );
+    }
+
     // Sort plays by minute chronologically as requested
     final sortedPlays = List<Play>.from(state.plays)
       ..sort((a, b) => a.minute.compareTo(b.minute));

@@ -65,6 +65,10 @@
 - [x] Jornada debería ser un selector de números.
 - [x] Fase debería ser un selector de fases(>Final, Seimifinal, Cuartos, Octavos, liguilla, y otros que habilitaría un campo de texto para añadir una jornada custom).
 
+## Phase 6.3.5: Fixing stuff [ ]
+
+- [x] The log section of the matches is not working at all.
+
 ## Phase 6.4: Upgrades in the Teams screens[]
 
 - [ ] In the Edit Team screen, the "manage players" button is hard to see, change its color.
