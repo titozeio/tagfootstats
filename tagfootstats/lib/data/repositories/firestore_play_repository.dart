@@ -15,6 +15,7 @@ class FirestorePlayRepository implements PlayRepository {
     final snapshot = await _firestore
         .collection(_collectionPath)
         .where('matchId', isEqualTo: matchId)
+        .orderBy('minute', descending: false)
         .get();
     return snapshot.docs
         .map((doc) => PlayModel.fromJson({...doc.data(), 'id': doc.id}))

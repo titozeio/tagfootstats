@@ -29,12 +29,12 @@ class ScoreboardWidget extends StatelessWidget {
       height: 110,
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       decoration: BoxDecoration(
-        color: AppColors.surfaceDark.withOpacity(0.8),
+        color: AppColors.surfaceDark.withValues(alpha: 0.8),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: AppColors.glassBorder, width: 0.5),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.6),
+            color: Colors.black.withValues(alpha: 0.6),
             blurRadius: 20,
             spreadRadius: -2,
             offset: const Offset(0, 10),
@@ -149,7 +149,7 @@ class ScoreboardWidget extends StatelessWidget {
         color: const Color(0xFF111111),
         border: Border.symmetric(
           vertical: BorderSide(
-            color: Colors.white.withOpacity(0.1),
+            color: Colors.white.withValues(alpha: 0.1),
             width: 0.5,
           ),
         ),
@@ -160,7 +160,7 @@ class ScoreboardWidget extends StatelessWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
             decoration: BoxDecoration(
-              color: AppColors.nflGold.withOpacity(0.2),
+              color: AppColors.nflGold.withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(4),
             ),
             child: Text(

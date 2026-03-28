@@ -36,17 +36,27 @@ class SettingsPage extends StatelessWidget {
               const Divider(),
               _buildSectionTitle('AYUDAS Y DEBUG'),
               ListTile(
-                leading: const Icon(Icons.auto_fix_high, color: AppColors.nflGold),
+                leading: const Icon(
+                  Icons.auto_fix_high,
+                  color: AppColors.nflGold,
+                ),
                 title: const Text('GENERAR DATOS DE PRUEBA'),
-                subtitle: const Text('Crea equipos, jugadores y partidos falsos'),
-                onTap: ownTeamId == null 
-                  ? null 
-                  : () => _generateFakeData(context, ownTeamId),
+                subtitle: const Text(
+                  'Crea equipos, jugadores y partidos falsos',
+                ),
+                onTap: ownTeamId == null
+                    ? null
+                    : () => _generateFakeData(context, ownTeamId),
               ),
               ListTile(
-                leading: const Icon(Icons.delete_sweep, color: AppColors.accentRed),
+                leading: const Icon(
+                  Icons.delete_sweep,
+                  color: AppColors.accentRed,
+                ),
                 title: const Text('BORRAR TODAS LAS ESTADÍSTICAS'),
-                subtitle: const Text('Elimina partidos y jugadas definitivamente'),
+                subtitle: const Text(
+                  'Elimina partidos y jugadas definitivamente',
+                ),
                 onTap: () => _confirmAndClearData(context),
               ),
               const Divider(),
@@ -80,7 +90,7 @@ class SettingsPage extends StatelessWidget {
 
   Future<void> _generateFakeData(BuildContext context, String teamId) async {
     final scaffoldMessenger = ScaffoldMessenger.of(context);
-    
+
     // Show loading
     showDialog(
       context: context,
@@ -100,12 +110,17 @@ class SettingsPage extends StatelessWidget {
       );
       if (context.mounted) Navigator.pop(context); // Close loading
       scaffoldMessenger.showSnackBar(
-        const SnackBar(content: Text('DATOS DE PRUEBA GENERADOS CORRECTAMENTE')),
+        const SnackBar(
+          content: Text('DATOS DE PRUEBA GENERADOS CORRECTAMENTE'),
+        ),
       );
     } catch (e) {
       if (context.mounted) Navigator.pop(context); // Close loading
       scaffoldMessenger.showSnackBar(
-        SnackBar(content: Text('ERROR: $e'), backgroundColor: AppColors.accentRed),
+        SnackBar(
+          content: Text('ERROR: $e'),
+          backgroundColor: AppColors.accentRed,
+        ),
       );
     }
   }
@@ -115,7 +130,9 @@ class SettingsPage extends StatelessWidget {
       context: context,
       builder: (c) => AlertDialog(
         title: const Text('¿BORRAR TODO?'),
-        content: const Text('Se eliminarán todos los partidos y jugadas. Los equipos y jugadores se mantendrán.'),
+        content: const Text(
+          'Se eliminarán todos los partidos y jugadas. Los equipos y jugadores se mantendrán.',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(c, false),
@@ -123,7 +140,10 @@ class SettingsPage extends StatelessWidget {
           ),
           TextButton(
             onPressed: () => Navigator.pop(c, true),
-            child: const Text('BORRAR', style: TextStyle(color: AppColors.accentRed)),
+            child: const Text(
+              'BORRAR',
+              style: TextStyle(color: AppColors.accentRed),
+            ),
           ),
         ],
       ),
@@ -141,7 +161,10 @@ class SettingsPage extends StatelessWidget {
         );
       } catch (e) {
         scaffoldMessenger.showSnackBar(
-          SnackBar(content: Text('ERROR: $e'), backgroundColor: AppColors.accentRed),
+          SnackBar(
+            content: Text('ERROR: $e'),
+            backgroundColor: AppColors.accentRed,
+          ),
         );
       }
     }

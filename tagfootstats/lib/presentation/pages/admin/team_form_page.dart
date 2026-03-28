@@ -158,8 +158,9 @@ class _TeamFormPageState extends State<TeamFormPage> {
 
     if (confirmed == true && mounted) {
       setState(() => _isSaving = true);
+      final teamRepo = context.read<TeamRepository>();
       try {
-        await context.read<TeamRepository>().deleteTeam(widget.team!.id);
+        await teamRepo.deleteTeam(widget.team!.id);
         if (mounted) context.pop();
       } finally {
         if (mounted) setState(() => _isSaving = false);
@@ -181,15 +182,15 @@ class _TeamFormPageState extends State<TeamFormPage> {
           isOwnTeam: _isOwnTeam,
         );
 
+        final teamRepo = context.read<TeamRepository>();
         if (_isOwnTeam) {
           // Ensure atomicity if marking as own team
-          await context.read<TeamRepository>().setAsOwnTeam(team.id);
+          await teamRepo.setAsOwnTeam(team.id);
           // Now save the other fields (though setAsOwnTeam only sets the flag)
           // We still need to save everything else
         }
 
-        await context
-            .read<TeamRepository>()
+        await teamRepo
             .saveTeam(team)
             .timeout(
               const Duration(seconds: 15),

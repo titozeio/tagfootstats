@@ -31,15 +31,15 @@ class Player extends Equatable {
 
   @override
   List<Object?> get props => [
-        id,
-        teamId,
-        firstName,
-        lastName,
-        dorsal,
-        birthDate,
-        email,
-        phone,
-        position,
-        photoUrl,
-      ];
+    id,
+    teamId,
+    firstName,
+    lastName,
+    dorsal,
+    birthDate,
+    email,
+    phone,
+    position,
+    photoUrl,
+  ];
 }

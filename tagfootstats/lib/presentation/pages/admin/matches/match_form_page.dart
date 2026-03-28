@@ -63,10 +63,11 @@ class _MatchFormPageState extends State<MatchFormPage> {
 
   Future<void> _loadInitialData() async {
     try {
-      final teams = await context.read<TeamRepository>().getTeams();
-      final tournaments = await context
-          .read<TournamentRepository>()
-          .getTournaments();
+      final teamRepo = context.read<TeamRepository>();
+      final tournamentRepo = context.read<TournamentRepository>();
+
+      final teams = await teamRepo.getTeams();
+      final tournaments = await tournamentRepo.getTournaments();
 
       if (mounted) {
         setState(() {
@@ -106,8 +107,13 @@ class _MatchFormPageState extends State<MatchFormPage> {
 
   Future<void> _save() async {
     if (!_formKey.currentState!.validate()) return;
+
+    final teamRepo = context.read<TeamRepository>();
+    final matchRepo = context.read<MatchRepository>();
+    final router = GoRouter.of(context);
+    final scaffoldMessenger = ScaffoldMessenger.of(context);
     if (_selectedTournamentId == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
+      scaffoldMessenger.showSnackBar(
         const SnackBar(content: Text('Por favor, selecciona un torneo')),
       );
       return;
@@ -134,7 +140,7 @@ class _MatchFormPageState extends State<MatchFormPage> {
           logoUrl: '',
           isOwnTeam: false,
         );
-        await context.read<TeamRepository>().saveTeam(newTeam);
+        await teamRepo.saveTeam(newTeam);
       }
 
       final match = entity.Match(
@@ -155,18 +161,15 @@ class _MatchFormPageState extends State<MatchFormPage> {
         awayScore: widget.match?.awayScore ?? 0,
       );
 
-      await context
-          .read<MatchRepository>()
-          .saveMatch(match)
-          .timeout(const Duration(seconds: 10));
+      await matchRepo.saveMatch(match).timeout(const Duration(seconds: 10));
 
       if (mounted) {
-        context.pushReplacement('/match/${match.id}');
+        router.pushReplacement('/match/${match.id}');
       }
     } catch (e) {
       if (mounted) {
         setState(() => _isSaving = false);
-        ScaffoldMessenger.of(context).showSnackBar(
+        scaffoldMessenger.showSnackBar(
           SnackBar(content: Text('Error al guardar el partido: $e')),
         );
       }

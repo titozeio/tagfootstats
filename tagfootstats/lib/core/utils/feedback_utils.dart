@@ -57,7 +57,7 @@ class FeedbackUtils {
             ),
           ],
         ),
-        backgroundColor: backgroundColor.withOpacity(0.9),
+        backgroundColor: backgroundColor.withValues(alpha: 0.9),
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         margin: const EdgeInsets.all(16),
