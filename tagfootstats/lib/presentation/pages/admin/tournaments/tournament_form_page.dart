@@ -40,13 +40,12 @@ class _TournamentFormPageState extends State<TournamentFormPage> {
 
   Future<void> _loadData() async {
     if (widget.id != null) {
-      final tournament = await context
-          .read<TournamentRepository>()
-          .getTournamentById(widget.id!);
+      final tournamentRepo = context.read<TournamentRepository>();
+      final matchRepo = context.read<MatchRepository>();
+
+      final tournament = await tournamentRepo.getTournamentById(widget.id!);
       if (tournament != null) {
-        final matches = await context
-            .read<MatchRepository>()
-            .getMatchesByTournament(widget.id!);
+        final matches = await matchRepo.getMatchesByTournament(widget.id!);
         setState(() {
           _nameController.text = tournament.name;
           _startDate = tournament.startDate;
@@ -238,11 +237,12 @@ class _TournamentFormPageState extends State<TournamentFormPage> {
 
   Future<void> _addQuickTeam() async {
     if (_quickTeamController.text.isEmpty) return;
+    final teamRepo = context.read<TeamRepository>();
     final team = Team(
       id: DateTime.now().millisecondsSinceEpoch.toString(),
       name: _quickTeamController.text,
     );
-    await context.read<TeamRepository>().saveTeam(team);
+    await teamRepo.saveTeam(team);
     setState(() {
       _teamIds.add(team.id);
       _quickTeamController.clear();
@@ -317,7 +317,8 @@ class _TournamentFormPageState extends State<TournamentFormPage> {
         teamIds: _teamIds,
       );
 
-      await context.read<TournamentRepository>().saveTournament(tournament);
+      final tournamentRepo = context.read<TournamentRepository>();
+      await tournamentRepo.saveTournament(tournament);
       if (mounted) context.pop();
     }
   }
@@ -347,7 +348,8 @@ class _TournamentFormPageState extends State<TournamentFormPage> {
     );
 
     if (confirmed == true && mounted) {
-      await context.read<TournamentRepository>().deleteTournament(widget.id!);
+      final tournamentRepo = context.read<TournamentRepository>();
+      await tournamentRepo.deleteTournament(widget.id!);
       if (mounted) context.pop();
     }
   }
@@ -391,8 +393,9 @@ class _TournamentFormPageState extends State<TournamentFormPage> {
     );
 
     if (confirmed == true && mounted) {
-      await context.read<MatchRepository>().deleteMatch(id);
-      _loadData();
+      final matchRepo = context.read<MatchRepository>();
+      await matchRepo.deleteMatch(id);
+      if (mounted) _loadData();
     }
   }
 
@@ -433,11 +436,11 @@ class _TournamentFormPageState extends State<TournamentFormPage> {
                       homeScore: match.homeScore,
                       awayScore: match.awayScore,
                     );
-                    await context.read<MatchRepository>().saveMatch(
-                      updatedMatch,
-                    );
+                    final matchRepo = context.read<MatchRepository>();
+                    final navigator = Navigator.of(context);
+                    await matchRepo.saveMatch(updatedMatch);
                     if (mounted) {
-                      Navigator.pop(context);
+                      navigator.pop();
                       _loadData();
                     }
                   },

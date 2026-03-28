@@ -73,7 +73,7 @@ class _PlayEntryFormState extends State<PlayEntryForm> {
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: AppColors.surfaceDark.withOpacity(0.5),
+        color: AppColors.surfaceDark.withValues(alpha: 0.5),
         borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
         border: Border.all(color: AppColors.glassBorder),
       ),
@@ -131,7 +131,7 @@ class _PlayEntryFormState extends State<PlayEntryForm> {
             margin: const EdgeInsets.only(bottom: 8),
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.05),
+              color: Colors.white.withValues(alpha: 0.05),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Row(
@@ -339,24 +339,22 @@ class _PlayEntryFormState extends State<PlayEntryForm> {
           children: [
             Expanded(
               child: DropdownButtonFormField<String>(
-                value: _selectedPlayerId,
+                initialValue: _selectedPlayerId,
                 decoration: _inputDecoration(
                   _selectedAction == 'PASE' ? 'QB' : 'JUGADOR',
                 ),
                 items: _playerItems(),
                 onChanged: (val) => setState(() => _selectedPlayerId = val),
-                hint: const Text('Jugador 1'),
               ),
             ),
             if (_selectedAction == 'PASE') ...[
               const SizedBox(width: 12),
               Expanded(
                 child: DropdownButtonFormField<String>(
-                  value: _selectedPlayer2Id,
+                  initialValue: _selectedPlayer2Id,
                   decoration: _inputDecoration('RECEPTOR'),
                   items: _playerItems(),
                   onChanged: (val) => setState(() => _selectedPlayer2Id = val),
-                  hint: const Text('Jugador 2'),
                 ),
               ),
             ],
@@ -529,7 +527,7 @@ class _PlayEntryFormState extends State<PlayEntryForm> {
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
           color: active
-              ? AppColors.nflGold.withOpacity(0.2)
+              ? AppColors.nflGold.withValues(alpha: 0.2)
               : Colors.transparent,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
@@ -583,9 +581,12 @@ class _PlayEntryFormState extends State<PlayEntryForm> {
               }
 
               final playerIds = <String>[];
-              if (_selectedPlayerId != null) playerIds.add(_selectedPlayerId!);
-              if (_selectedPlayer2Id != null)
+              if (_selectedPlayerId != null) {
+                playerIds.add(_selectedPlayerId!);
+              }
+              if (_selectedPlayer2Id != null) {
                 playerIds.add(_selectedPlayer2Id!);
+              }
 
               widget.onPlayAdded(
                 _selectedAction!,

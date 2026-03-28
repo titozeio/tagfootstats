@@ -121,7 +121,7 @@ class HomePage extends StatelessWidget {
           decoration: BoxDecoration(
             color: AppColors.surfaceDark,
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: AppColors.nflGold.withOpacity(0.3)),
+            border: Border.all(color: AppColors.nflGold.withValues(alpha: 0.3)),
           ),
           child: Column(
             children: [

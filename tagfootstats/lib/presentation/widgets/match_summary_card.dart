@@ -67,7 +67,7 @@ class MatchSummaryCard extends StatelessWidget {
     return Column(
       children: [
         Hero(
-          tag: isHighlight ? 'team_logo_${ownTeam.id}' : 'opponent_${name}',
+          tag: isHighlight ? 'team_logo_${ownTeam.id}' : 'opponent_$name',
           child: Text(
             name.toUpperCase(),
             style: TextStyle(

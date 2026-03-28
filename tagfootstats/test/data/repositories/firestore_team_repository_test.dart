@@ -7,18 +7,23 @@ import 'package:tagfootstats/domain/entities/team.dart';
 
 class MockFirebaseFirestore extends Mock implements FirebaseFirestore {}
 
+// ignore: subtype_of_sealed_class
 class MockCollectionReference extends Mock
     implements CollectionReference<Map<String, dynamic>> {}
 
+// ignore: subtype_of_sealed_class
 class MockDocumentReference extends Mock
     implements DocumentReference<Map<String, dynamic>> {}
 
+// ignore: subtype_of_sealed_class
 class MockQuerySnapshot extends Mock
     implements QuerySnapshot<Map<String, dynamic>> {}
 
+// ignore: subtype_of_sealed_class
 class MockQueryDocumentSnapshot extends Mock
     implements QueryDocumentSnapshot<Map<String, dynamic>> {}
 
+// ignore: subtype_of_sealed_class
 class MockDocumentSnapshot extends Mock
     implements DocumentSnapshot<Map<String, dynamic>> {}
 
@@ -29,7 +34,6 @@ void main() {
   late MockDocumentReference mockDocument;
   late MockQuerySnapshot mockQuerySnapshot;
   late MockQueryDocumentSnapshot mockQueryDocumentSnapshot;
-  late MockDocumentSnapshot mockDocumentSnapshot;
 
   setUp(() {
     mockFirestore = MockFirebaseFirestore();
@@ -37,7 +41,6 @@ void main() {
     mockDocument = MockDocumentReference();
     mockQuerySnapshot = MockQuerySnapshot();
     mockQueryDocumentSnapshot = MockQueryDocumentSnapshot();
-    mockDocumentSnapshot = MockDocumentSnapshot();
 
     repository = FirestoreTeamRepository(firestore: mockFirestore);
 
@@ -77,8 +80,7 @@ void main() {
 
   group('getOwnTeam', () {
     test('should return the primary own team', () async {
-      final mockQuery =
-          MockCollectionReference(); // Actually it should be a Query
+      // Actually it should be a Query
       // In this version of the repository, we use .where().limit(1).get()
       // This requires mocking more parts of Firestore
       // For brevity, we'll assume the basic mock works for now or mock it properly

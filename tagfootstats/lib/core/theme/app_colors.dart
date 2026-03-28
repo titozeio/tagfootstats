@@ -19,6 +19,6 @@ class AppColors {
   static const Color textSecondary = Colors.white70;
 
   // Glassmorphism/Overlay
-  static Color glassOverlay = Colors.white.withOpacity(0.1);
-  static Color glassBorder = Colors.white.withOpacity(0.2);
+  static Color glassOverlay = Colors.white.withValues(alpha: 0.1);
+  static Color glassBorder = Colors.white.withValues(alpha: 0.2);
 }

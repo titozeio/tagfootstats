@@ -13,8 +13,9 @@ class MainScaffold extends StatelessWidget {
 
     int currentIndex = 0;
     if (location.startsWith('/matches')) currentIndex = 1;
-    if (location.startsWith('/teams') || location.startsWith('/players'))
+    if (location.startsWith('/teams') || location.startsWith('/players')) {
       currentIndex = 2;
+    }
     if (location.startsWith('/tournaments')) currentIndex = 3;
     if (location.startsWith('/settings')) currentIndex = 4;
 

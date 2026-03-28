@@ -72,18 +72,14 @@ class _StatsLoader extends StatelessWidget {
   }
 
   Future<Map<String, dynamic>> _fetchData(BuildContext context) async {
-    final matches = await context.read<MatchRepository>().getMatches();
-    // Filter matches where ownTeamId is home or away
-    // In current data model, we assume matches in Repository are all relevant or we filter by Team
-    // Actually our Match has opponentId and locationType
-    // We'll collect all match IDs
+    final matchRepo = context.read<MatchRepository>();
+    final playRepo = context.read<PlayRepository>();
+    final playerRepo = context.read<PlayerRepository>();
+
+    final matches = await matchRepo.getMatches();
     final matchIds = matches.map((m) => m.id).toList();
-    final plays = await context.read<PlayRepository>().getPlaysByMatches(
-      matchIds,
-    );
-    final players = await context.read<PlayerRepository>().getPlayersByTeam(
-      ownTeamId,
-    );
+    final plays = await playRepo.getPlaysByMatches(matchIds);
+    final players = await playerRepo.getPlayersByTeam(ownTeamId);
 
     return {'matches': matches, 'plays': plays, 'players': players};
   }
@@ -97,8 +93,9 @@ class _TeamStatsTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (matches.isEmpty)
+    if (matches.isEmpty) {
       return const Center(child: Text('No hay partidos registrados'));
+    }
 
     // Compute Stats
     int totalOffPoints = 0;

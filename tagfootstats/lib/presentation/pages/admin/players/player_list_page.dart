@@ -145,9 +145,9 @@ class PlayerListPage extends StatelessWidget {
                     ),
                     decoration: BoxDecoration(
                       color: player.position == PlayerPosition.offense
-                          ? AppColors.primaryBlue.withOpacity(0.3)
+                          ? AppColors.primaryBlue.withValues(alpha: 0.3)
                           : player.position == PlayerPosition.defense
-                          ? AppColors.accentRed.withOpacity(0.3)
+                          ? AppColors.accentRed.withValues(alpha: 0.3)
                           : Colors.white12,
                       borderRadius: BorderRadius.circular(4),
                     ),
