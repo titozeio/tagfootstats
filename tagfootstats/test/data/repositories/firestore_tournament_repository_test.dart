@@ -74,6 +74,7 @@ void main() {
           'startDate': '2026-01-01T00:00:00.000',
           'endDate': '2026-01-31T00:00:00.000',
           'type': 'liga',
+          'teamIds': [],
         });
 
         final result = await repository.getTournaments();
