@@ -63,6 +63,10 @@ Statistics are recorded in real-time or post-match. The interface updates the sc
 |                 | Carrera      | Completo          | +1 or +2 pts                     |
 |                 |              | Fallido           | -                                |
 
+## 6. Detailed Feature Specs
+- [Faltas (Fouls) System](file:///d:/projects/tagfootstats/tagfootstats/docs/specs/faltas_spec.md)
+- [Post-Match Statistics (Box Score)](file:///d:/projects/tagfootstats/tagfootstats/docs/specs/post_match_stats_spec.md)
+
 ## 4. UI/UX Requirements
 - **Real-time Scoreboard**: Visible at all times during match recording.
 - **Dynamic Clock**: Updates based on the last recorded play's timestamp.

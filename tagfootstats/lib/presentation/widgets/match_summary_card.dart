@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:tagfootstats/core/theme/app_colors.dart';
 import 'package:tagfootstats/domain/entities/match.dart' as entity;
 import 'package:tagfootstats/domain/entities/team.dart';
@@ -7,12 +8,14 @@ class MatchSummaryCard extends StatelessWidget {
   final entity.Match match;
   final Team ownTeam;
   final String? tournamentName;
+  final String? opponentName;
 
   const MatchSummaryCard({
     super.key,
     required this.match,
     required this.ownTeam,
     this.tournamentName,
+    this.opponentName,
   });
 
   @override
@@ -43,7 +46,9 @@ class MatchSummaryCard extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
               _buildTeam(
-                isHomeOwnTeam ? ownTeam.name : match.opponentId,
+                isHomeOwnTeam
+                    ? ownTeam.name
+                    : (opponentName ?? match.opponentId),
                 isHomeOwnTeam,
                 match.homeScore,
               ),
@@ -52,9 +57,31 @@ class MatchSummaryCard extends StatelessWidget {
                 style: TextStyle(fontWeight: FontWeight.w900, fontSize: 20),
               ),
               _buildTeam(
-                !isHomeOwnTeam ? ownTeam.name : match.opponentId,
+                !isHomeOwnTeam
+                    ? ownTeam.name
+                    : (opponentName ?? match.opponentId),
                 !isHomeOwnTeam,
                 match.awayScore,
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          const Divider(color: Colors.white10),
+          const SizedBox(height: 8),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              TextButton.icon(
+                onPressed: () => context.push('/match/${match.id}/stats'),
+                icon: const Icon(Icons.bar_chart, size: 18),
+                label: const Text('ESTADÍSTICAS'),
+                style: TextButton.styleFrom(
+                  foregroundColor: AppColors.nflGold,
+                  textStyle: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 12,
+                  ),
+                ),
               ),
             ],
           ),

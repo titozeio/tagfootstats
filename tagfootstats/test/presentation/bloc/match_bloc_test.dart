@@ -85,7 +85,12 @@ void main() {
       act: (bloc) => bloc.add(const LoadMatch('1')),
       expect: () => [
         MatchLoading(),
-        MatchLoaded(match: tMatch, plays: [tPlay], players: const []),
+        MatchLoaded(
+          match: tMatch,
+          plays: [tPlay],
+          players: const [],
+          opponentTeamName: '',
+        ),
       ],
     );
 

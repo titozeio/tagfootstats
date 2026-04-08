@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:tagfootstats/core/theme/app_colors.dart';
 import 'package:tagfootstats/presentation/bloc/app/app_bloc.dart';
 import 'package:tagfootstats/presentation/pages/home/home_page.dart';
 import 'package:tagfootstats/presentation/pages/match_page.dart';
@@ -15,7 +16,14 @@ import 'package:tagfootstats/presentation/pages/admin/matches/match_list_page.da
 import 'package:tagfootstats/presentation/pages/admin/matches/match_form_page.dart';
 import 'package:tagfootstats/presentation/pages/admin/settings_page.dart';
 import 'package:tagfootstats/presentation/pages/stats/advanced_stats_page.dart';
+import 'package:tagfootstats/presentation/pages/stats/match_stats_page.dart';
+import 'package:tagfootstats/domain/repositories/match_repository.dart';
+import 'package:tagfootstats/domain/repositories/play_repository.dart';
+import 'package:tagfootstats/domain/repositories/player_repository.dart';
 import 'package:tagfootstats/domain/repositories/team_repository.dart';
+import 'package:tagfootstats/domain/entities/match.dart' as entity;
+import 'package:tagfootstats/domain/entities/play.dart';
+import 'package:tagfootstats/domain/entities/player.dart';
 import 'package:tagfootstats/domain/entities/team.dart';
 import 'package:tagfootstats/presentation/widgets/main_scaffold.dart';
 
@@ -65,6 +73,23 @@ class AppRouter {
             builder: (context, state) {
               final id = state.pathParameters['id']!;
               return MatchPage(matchId: id);
+            },
+          ),
+          GoRoute(
+            path: '/match/:id/stats',
+            builder: (context, state) {
+              final id = state.pathParameters['id']!;
+              final appState = appBloc.state;
+              final teamId = appState is AppReady ? appState.ownTeam.id : '';
+              final ownTeamName = appState is AppReady
+                  ? appState.ownTeam.name
+                  : 'Mi Equipo';
+
+              return MatchStatsLoader(
+                matchId: id,
+                teamId: teamId,
+                ownTeamName: ownTeamName,
+              );
             },
           ),
           GoRoute(
@@ -135,6 +160,109 @@ class AppRouter {
       ),
     ],
   );
+}
+
+class MatchStatsLoader extends StatelessWidget {
+  final String matchId;
+  final String teamId;
+  final String ownTeamName;
+
+  const MatchStatsLoader({
+    super.key,
+    required this.matchId,
+    required this.teamId,
+    required this.ownTeamName,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<List<dynamic>>(
+      future:
+          Future.wait([
+                context.read<MatchRepository>().getMatchById(matchId),
+                context.read<PlayRepository>().getPlaysByMatch(matchId),
+                context.read<PlayerRepository>().getPlayersByTeam(teamId),
+              ])
+              .then((results) async {
+                final m = results[0] as entity.Match?;
+                if (m != null) {
+                  final opponent = await context
+                      .read<TeamRepository>()
+                      .getTeamById(m.opponentId);
+                  return [...results, opponent?.name ?? m.opponentId];
+                }
+                return [...results, 'Contrincante'];
+              })
+              .timeout(const Duration(seconds: 15)),
+      builder: (context, snapshot) {
+        if (snapshot.hasError) {
+          return Scaffold(
+            appBar: AppBar(title: const Text('ERROR')),
+            body: Center(
+              child: Padding(
+                padding: const EdgeInsets.all(24.0),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(
+                      Icons.error_outline,
+                      color: Colors.red,
+                      size: 48,
+                    ),
+                    const SizedBox(height: 16),
+                    SelectableText(
+                      'ERROR AL CARGAR ESTADÍSTICAS:\n${snapshot.error}',
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(color: Colors.red),
+                    ),
+                    const SizedBox(height: 24),
+                    ElevatedButton(
+                      onPressed: () => context.pop(),
+                      child: const Text('VOLVER'),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          );
+        }
+
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Scaffold(
+            body: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  CircularProgressIndicator(color: AppColors.nflGold),
+                  SizedBox(height: 24),
+                  Text(
+                    'CARGANDO ESTADÍSTICAS...',
+                    style: TextStyle(color: Colors.grey),
+                  ),
+                ],
+              ),
+            ),
+          );
+        }
+
+        if (!snapshot.hasData ||
+            (snapshot.data as List).any((e) => e == null)) {
+          return const Scaffold(
+            body: Center(child: Text('Datos no encontrados')),
+          );
+        }
+
+        final data = snapshot.data as List<dynamic>;
+        return MatchStatsPage(
+          match: data[0] as entity.Match,
+          plays: data[1] as List<Play>,
+          players: data[2] as List<Player>,
+          ownTeamName: ownTeamName,
+          opponentTeamName: data[3] as String,
+        );
+      },
+    );
+  }
 }
 
 // Helper to load team before showing form

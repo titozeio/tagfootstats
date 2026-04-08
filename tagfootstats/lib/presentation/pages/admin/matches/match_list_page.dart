@@ -6,8 +6,48 @@ import 'package:tagfootstats/domain/repositories/match_repository.dart';
 import 'package:tagfootstats/presentation/bloc/app/app_bloc.dart';
 import 'package:tagfootstats/presentation/widgets/match_summary_card.dart';
 
-class MatchListPage extends StatelessWidget {
+import 'package:tagfootstats/domain/repositories/team_repository.dart';
+
+class MatchListPage extends StatefulWidget {
   const MatchListPage({super.key});
+
+  @override
+  State<MatchListPage> createState() => _MatchListPageState();
+}
+
+class _MatchListPageState extends State<MatchListPage> {
+  List<entity.Match>? _matches;
+  Map<String, String> _teamNames = {};
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadData();
+  }
+
+  Future<void> _loadData() async {
+    final matchRepository = context.read<MatchRepository>();
+    final teamRepository = context.read<TeamRepository>();
+
+    try {
+      final matches = await matchRepository.getMatches();
+      final teams = await teamRepository.getTeams();
+      final names = {for (var t in teams) t.id: t.name};
+
+      if (mounted) {
+        setState(() {
+          _matches = matches;
+          _teamNames = names;
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -18,36 +58,38 @@ class MatchListPage extends StatelessWidget {
         label: const Text('NUEVO PARTIDO'),
         icon: const Icon(Icons.add),
       ),
-      body: FutureBuilder<List<entity.Match>>(
-        future: context.read<MatchRepository>().getMatches(),
-        builder: (context, snapshot) {
-          if (!snapshot.hasData) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          if (snapshot.data!.isEmpty) {
-            return const Center(child: Text('No se han encontrado partidos.'));
-          }
+      body: _buildBody(),
+    );
+  }
 
-          final matches = snapshot.data!;
-          final appState = context.read<AppBloc>().state;
-          if (appState is! AppReady) return const SizedBox.shrink();
+  Widget _buildBody() {
+    if (_isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
 
-          return ListView.builder(
-            padding: const EdgeInsets.all(16),
-            itemCount: matches.length,
-            itemBuilder: (context, index) {
-              final match = matches[index];
-              return InkWell(
-                onTap: () => context.push('/match/${match.id}'),
-                child: MatchSummaryCard(
-                  match: match,
-                  ownTeam: appState.ownTeam,
-                ),
-              );
-            },
-          );
-        },
-      ),
+    if (_matches == null || _matches!.isEmpty) {
+      return const Center(child: Text('No se han encontrado partidos.'));
+    }
+
+    final appState = context.read<AppBloc>().state;
+    if (appState is! AppReady) return const SizedBox.shrink();
+
+    return ListView.builder(
+      padding: const EdgeInsets.all(16),
+      itemCount: _matches!.length,
+      itemBuilder: (context, index) {
+        final match = _matches![index];
+        final opponentName = _teamNames[match.opponentId] ?? match.opponentId;
+
+        return InkWell(
+          onTap: () => context.push('/match/${match.id}'),
+          child: MatchSummaryCard(
+            match: match,
+            ownTeam: appState.ownTeam,
+            opponentName: opponentName,
+          ),
+        );
+      },
     );
   }
 }

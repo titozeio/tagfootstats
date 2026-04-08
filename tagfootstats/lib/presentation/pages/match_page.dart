@@ -57,6 +57,16 @@ class MatchView extends StatelessWidget {
           if (state is MatchLoading) {
             return const Center(child: CircularProgressIndicator());
           } else if (state is MatchLoaded) {
+            final appState = context.read<AppBloc>().state;
+            final ownTeamName = (appState is AppReady)
+                ? appState.ownTeam.name
+                : 'TU EQUIPO';
+
+            final isLocal =
+                state.match.locationType == entity.LocationType.local;
+            final homeName = isLocal ? ownTeamName : state.opponentTeamName;
+            final awayName = isLocal ? state.opponentTeamName : ownTeamName;
+
             return LayoutBuilder(
               builder: (context, constraints) {
                 final isDesktop = constraints.maxWidth > 800;
@@ -64,19 +74,19 @@ class MatchView extends StatelessWidget {
                 return Column(
                   children: [
                     ScoreboardWidget(
-                      homeTeamName: 'TU EQUIPO',
-                      awayTeamName: state.match.opponentId,
+                      homeTeamName: homeName,
+                      awayTeamName: awayName,
                       homeScore: state.match.homeScore,
                       awayScore: state.match.awayScore,
-                      homeTeamId: (context.read<AppBloc>().state as AppReady)
-                          .ownTeam
-                          .id,
+                      homeTeamId: (appState is AppReady)
+                          ? appState.ownTeam.id
+                          : '',
                       timeLeft: _calculateTimeLeft(state.plays),
                     ),
                     Expanded(
                       child: isDesktop
-                          ? _buildDesktopLayout(context, state)
-                          : _buildMobileLayout(context, state),
+                          ? _buildDesktopLayout(context, state, ownTeamName)
+                          : _buildMobileLayout(context, state, ownTeamName),
                     ),
                   ],
                 );
@@ -143,7 +153,11 @@ class MatchView extends StatelessWidget {
     return '${maxMin.toString().padLeft(2, '0')}:00';
   }
 
-  Widget _buildMobileLayout(BuildContext context, MatchLoaded state) {
+  Widget _buildMobileLayout(
+    BuildContext context,
+    MatchLoaded state,
+    String ownTeamName,
+  ) {
     return DefaultTabController(
       length: 3,
       child: Column(
@@ -161,8 +175,13 @@ class MatchView extends StatelessWidget {
           Expanded(
             child: TabBarView(
               children: [
-                _buildPhasePanel(context, state, PlayPhase.ataque),
-                _buildPhasePanel(context, state, PlayPhase.defensa),
+                _buildPhasePanel(context, state, PlayPhase.ataque, ownTeamName),
+                _buildPhasePanel(
+                  context,
+                  state,
+                  PlayPhase.defensa,
+                  ownTeamName,
+                ),
                 _buildPlayList(state),
               ],
             ),
@@ -172,7 +191,11 @@ class MatchView extends StatelessWidget {
     );
   }
 
-  Widget _buildDesktopLayout(BuildContext context, MatchLoaded state) {
+  Widget _buildDesktopLayout(
+    BuildContext context,
+    MatchLoaded state,
+    String ownTeamName,
+  ) {
     return Row(
       children: [
         Expanded(
@@ -211,8 +234,18 @@ class MatchView extends StatelessWidget {
                 Expanded(
                   child: TabBarView(
                     children: [
-                      _buildPhasePanel(context, state, PlayPhase.ataque),
-                      _buildPhasePanel(context, state, PlayPhase.defensa),
+                      _buildPhasePanel(
+                        context,
+                        state,
+                        PlayPhase.ataque,
+                        ownTeamName,
+                      ),
+                      _buildPhasePanel(
+                        context,
+                        state,
+                        PlayPhase.defensa,
+                        ownTeamName,
+                      ),
                     ],
                   ),
                 ),
@@ -228,27 +261,51 @@ class MatchView extends StatelessWidget {
     BuildContext context,
     MatchLoaded state,
     PlayPhase phase,
+    String ownTeamName,
   ) {
     return PlayEntryForm(
       phase: phase,
       players: state.players,
+      opponentPlayers: state.opponentPlayers,
+      opponentTeamId: state.match.opponentId,
       homeScore: state.match.homeScore,
       awayScore: state.match.awayScore,
       recentPlays: state.plays,
-      onPlayAdded: (action, outcome, points, yardas, minute, down, players) {
-        _onPlayAdded(
-          context,
-          state.match.id,
-          phase,
-          action,
-          outcome,
-          points,
-          yardas,
-          minute,
-          down,
-          players,
-        );
-      },
+      onPlayAdded:
+          (
+            action,
+            outcome,
+            points,
+            yardas,
+            minute,
+            down,
+            players,
+            opponentPlayers,
+            scoringTeamId,
+            foulType,
+            isLossOfDown,
+            isAutomaticFirstDown,
+            penalizingTeamId,
+          ) {
+            _onPlayAdded(
+              context,
+              state.match.id,
+              phase,
+              action,
+              outcome,
+              points,
+              yardas,
+              minute,
+              down,
+              players,
+              opponentPlayers,
+              scoringTeamId,
+              foulType,
+              isLossOfDown,
+              isAutomaticFirstDown,
+              penalizingTeamId,
+            );
+          },
     );
   }
 
@@ -279,17 +336,26 @@ class MatchView extends StatelessWidget {
       itemBuilder: (context, index) {
         final play = sortedPlays[index];
         final isOffense = play.phase == PlayPhase.ataque;
+        final isFoul = play.action == 'FALTA';
+
+        final isLocalPlay = _isPlayLocal(play, state.match);
 
         return Card(
           margin: const EdgeInsets.only(bottom: 8),
-          color: AppColors.surfaceDark,
+          color: isFoul
+              ? Colors.amber.withValues(alpha: 0.1)
+              : (isLocalPlay
+                    ? AppColors.primaryBlue.withValues(alpha: 0.1)
+                    : AppColors.accentRed.withValues(alpha: 0.1)),
           child: ListTile(
             leading: CircleAvatar(
-              backgroundColor: isOffense
-                  ? AppColors.primaryBlue
-                  : AppColors.accentRed,
+              backgroundColor: isFoul
+                  ? Colors.amber
+                  : (isOffense
+                        ? AppColors.offensivePurple
+                        : AppColors.defensiveGreen),
               child: Text(
-                play.points > 0 ? '+${play.points}' : '0',
+                isFoul ? '!' : (play.points > 0 ? '+${play.points}' : '0'),
                 style: const TextStyle(
                   color: Colors.white,
                   fontWeight: FontWeight.bold,
@@ -299,7 +365,11 @@ class MatchView extends StatelessWidget {
             ),
             title: Text(
               '${play.action} - ${play.outcome}'.toUpperCase(),
-              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 13,
+                color: isFoul ? Colors.amber : Colors.white,
+              ),
             ),
             subtitle: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -308,29 +378,28 @@ class MatchView extends StatelessWidget {
                   'MIN: ${play.minute} | ${play.down != null ? "${play.down}º DOWN | " : ""}${play.yardas} YDS | ${isOffense ? "ATAQUE" : "DEFENSA"}',
                   style: const TextStyle(fontSize: 11, color: Colors.grey),
                 ),
-                if (play.involvedPlayerIds.isNotEmpty)
-                  FutureBuilder(
-                    future: Future.wait(
-                      play.involvedPlayerIds.map(
-                        (id) =>
-                            context.read<PlayerRepository>().getPlayerById(id),
+                if (isFoul) ...[
+                  if (play.isLossOfDown || play.isAutomaticFirstDown)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 4.0),
+                      child: Text(
+                        'EFECTO: ${[if (play.isLossOfDown) "LOD", if (play.isAutomaticFirstDown) "1ST DOWN AUTO"].join(" + ")}',
+                        style: const TextStyle(
+                          fontSize: 10,
+                          color: Colors.amberAccent,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ),
-                    builder: (context, snapshot) {
-                      if (snapshot.hasData) {
-                        final players = snapshot.data!
-                            .whereType<Player>()
-                            .toList();
-                        return Text(
-                          'JUGADORES: ${players.map((p) => "#${p.dorsal}").join(" ")}',
-                          style: const TextStyle(
-                            fontSize: 11,
-                            color: AppColors.nflGold,
-                          ),
-                        );
-                      }
-                      return const SizedBox.shrink();
-                    },
+                ],
+                if (play.involvedPlayerIds.isNotEmpty ||
+                    play.opponentInvolvedPlayerIds.isNotEmpty)
+                  Text(
+                    'JUGADORES: ${_resolvePlayerNames(play, state.players, state.opponentPlayers)}',
+                    style: const TextStyle(
+                      fontSize: 11,
+                      color: AppColors.nflGold,
+                    ),
                   ),
               ],
             ),
@@ -341,6 +410,34 @@ class MatchView extends StatelessWidget {
         );
       },
     );
+  }
+
+  String _resolvePlayerNames(
+    Play play,
+    List<Player> players,
+    List<Player> opponentPlayers,
+  ) {
+    final names = <String>[];
+
+    for (final id in play.involvedPlayerIds) {
+      final p = players.where((player) => player.id == id).firstOrNull;
+      if (p != null) {
+        names.add('#${p.dorsal} ${p.firstName}');
+      } else {
+        names.add('#$id');
+      }
+    }
+
+    for (final id in play.opponentInvolvedPlayerIds) {
+      final p = opponentPlayers.where((player) => player.id == id).firstOrNull;
+      if (p != null) {
+        names.add('#${p.dorsal} ${p.firstName}');
+      } else {
+        names.add('RIVAL');
+      }
+    }
+
+    return names.join(", ");
   }
 
   void _onPlayAdded(
@@ -354,6 +451,12 @@ class MatchView extends StatelessWidget {
     int minute,
     int? down,
     List<String> players,
+    List<String> opponentPlayers,
+    String? scoringTeamId,
+    String? foulType,
+    bool isLossOfDown,
+    bool isAutomaticFirstDown,
+    String? penalizingTeamId,
   ) {
     final play = Play(
       id: DateTime.now().millisecondsSinceEpoch.toString(),
@@ -366,7 +469,38 @@ class MatchView extends StatelessWidget {
       points: points,
       yardas: yardas,
       involvedPlayerIds: players,
+      opponentInvolvedPlayerIds: opponentPlayers,
+      scoringTeamId: scoringTeamId,
+      foulType: foulType,
+      isLossOfDown: isLossOfDown,
+      isAutomaticFirstDown: isAutomaticFirstDown,
+      penalizingTeamId: penalizingTeamId,
     );
     context.read<MatchBloc>().add(AddPlayEvent(play));
+  }
+
+  bool _isPlayLocal(Play play, entity.Match match) {
+    bool isOurTeamPlay;
+
+    // Check who is involved
+    if (play.involvedPlayerIds.isNotEmpty) {
+      isOurTeamPlay = true;
+    } else if (play.opponentInvolvedPlayerIds.isNotEmpty) {
+      isOurTeamPlay = false;
+    } else {
+      // Fallback to phase (Ataque = US, Defensa = RIVAL)
+      isOurTeamPlay = play.phase == PlayPhase.ataque;
+    }
+
+    if (match.locationType == entity.LocationType.local) {
+      // Our team is Local
+      return isOurTeamPlay;
+    } else if (match.locationType == entity.LocationType.visitante) {
+      // Our team is Visitor, so Rival play (isOurTeamPlay == false) is Local
+      return !isOurTeamPlay;
+    } else {
+      // Neutro: Default Our team to Local for color purposes
+      return isOurTeamPlay;
+    }
   }
 }
