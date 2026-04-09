@@ -1,9 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
-import 'package:tagfootstats/data/models/play_model.dart';
 import 'package:tagfootstats/data/repositories/firestore_play_repository.dart';
-import 'package:tagfootstats/domain/entities/play.dart';
 
 class MockFirebaseFirestore extends Mock implements FirebaseFirestore {}
 
@@ -43,20 +41,6 @@ void main() {
     when(() => mockFirestore.collection(any())).thenReturn(mockCollection);
     when(() => mockCollection.doc(any())).thenReturn(mockDocument);
   });
-
-  final tPlay = Play(
-    id: '1',
-    matchId: 'm1',
-    phase: PlayPhase.ataque,
-    minute: 5,
-    action: 'Pass',
-    outcome: 'Complete',
-    points: 0,
-    yardas: 10,
-    involvedPlayerIds: const ['p1'],
-  );
-
-  final tPlayModel = PlayModel.fromEntity(tPlay);
 
   group('getPlaysByMatch', () {
     test(
