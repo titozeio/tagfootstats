@@ -87,9 +87,17 @@ void main() {
         MatchLoading(),
         MatchLoaded(
           match: tMatch,
+          plays: const [],
+          players: const [],
+          opponentPlayers: const [],
+          opponentTeamName: 'o1',
+        ),
+        MatchLoaded(
+          match: tMatch,
           plays: [tPlay],
           players: const [],
-          opponentTeamName: '',
+          opponentPlayers: const [],
+          opponentTeamName: 'o1',
         ),
       ],
     );
