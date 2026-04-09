@@ -7,19 +7,22 @@ import 'package:tagfootstats/domain/entities/player.dart';
 
 void main() {
   group('team reference utils', () {
-    test('resolveTeamName uses the registered team name when the reference is an id', () {
-      expect(
-        resolveTeamName('opp_1', {'opp_1': 'Spartans'}),
-        'Spartans',
-      );
-    });
+    test(
+      'resolveTeamName uses the registered team name when the reference is an id',
+      () {
+        expect(resolveTeamName('opp_1', {'opp_1': 'Spartans'}), 'Spartans');
+      },
+    );
 
-    test('canonicalizeTeamReference converts a stored team name back to its team id', () {
-      expect(
-        canonicalizeTeamReference('Spartans', {'opp_1': 'Spartans'}),
-        'opp_1',
-      );
-    });
+    test(
+      'canonicalizeTeamReference converts a stored team name back to its team id',
+      () {
+        expect(
+          canonicalizeTeamReference('Spartans', {'opp_1': 'Spartans'}),
+          'opp_1',
+        );
+      },
+    );
   });
 
   group('aggregateStats', () {

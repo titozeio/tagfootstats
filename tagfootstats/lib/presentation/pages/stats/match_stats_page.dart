@@ -46,7 +46,9 @@ class MatchStatsPage extends StatelessWidget {
     };
     final playerStatsByRef = <String, List<PlayerStatsAggregate>>{};
     for (final playerStat in aggregated.playerStats) {
-      playerStatsByRef.putIfAbsent(playerStat.teamRef, () => []).add(playerStat);
+      playerStatsByRef
+          .putIfAbsent(playerStat.teamRef, () => [])
+          .add(playerStat);
     }
     final homeTeamRef = isUserHome ? ownTeamId : opponentTeamId;
     final awayTeamRef = isUserHome ? opponentTeamId : ownTeamId;
@@ -185,9 +187,7 @@ class MatchStatsPage extends StatelessWidget {
               Container(
                 width: 4,
                 height: 20,
-                color: isHomeTeam
-                    ? AppColors.primaryBlue
-                    : AppColors.accentRed,
+                color: isHomeTeam ? AppColors.primaryBlue : AppColors.accentRed,
               ),
               const SizedBox(width: 8),
               Text(
@@ -376,10 +376,9 @@ class MatchStatsPage extends StatelessWidget {
     if (opponentPlayers.isNotEmpty) {
       return opponentPlayers.first.teamId;
     }
-    return canonicalizeTeamReference(
-      match.opponentId,
-      {match.opponentId: opponentTeamName},
-    );
+    return canonicalizeTeamReference(match.opponentId, {
+      match.opponentId: opponentTeamName,
+    });
   }
 
   void _copyStatsToClipboard(BuildContext context) {
@@ -399,7 +398,9 @@ class MatchStatsPage extends StatelessWidget {
     };
     final playerStatsByRef = <String, List<PlayerStatsAggregate>>{};
     for (final playerStat in aggregated.playerStats) {
-      playerStatsByRef.putIfAbsent(playerStat.teamRef, () => []).add(playerStat);
+      playerStatsByRef
+          .putIfAbsent(playerStat.teamRef, () => [])
+          .add(playerStat);
     }
     final homeTeamRef = isUserHome ? ownTeamId : opponentTeamId;
     final awayTeamRef = isUserHome ? opponentTeamId : ownTeamId;

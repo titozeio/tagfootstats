@@ -229,10 +229,11 @@ class HomePage extends StatelessWidget {
           return const SizedBox.shrink();
         }
 
-        final matches = (snapshot.data![0] as List<entity.Match>)
-            .where((match) => hasValidOpponentReference(match.opponentId))
-            .toList()
-          ..sort((a, b) => a.dateTime.compareTo(b.dateTime));
+        final matches =
+            (snapshot.data![0] as List<entity.Match>)
+                .where((match) => hasValidOpponentReference(match.opponentId))
+                .toList()
+              ..sort((a, b) => a.dateTime.compareTo(b.dateTime));
         if (matches.isEmpty) {
           return const SizedBox.shrink();
         }

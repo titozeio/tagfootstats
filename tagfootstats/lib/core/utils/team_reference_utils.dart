@@ -21,10 +21,7 @@ String canonicalizeTeamReference(
   return trimmed;
 }
 
-String resolveTeamName(
-  String rawReference,
-  Map<String, String> teamNamesById,
-) {
+String resolveTeamName(String rawReference, Map<String, String> teamNamesById) {
   final canonicalReference = canonicalizeTeamReference(
     rawReference,
     teamNamesById,

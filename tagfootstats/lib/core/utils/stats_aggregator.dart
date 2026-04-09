@@ -7,10 +7,7 @@ class AggregatedStats {
   final List<TeamStatsAggregate> teamStats;
   final List<PlayerStatsAggregate> playerStats;
 
-  const AggregatedStats({
-    required this.teamStats,
-    required this.playerStats,
-  });
+  const AggregatedStats({required this.teamStats, required this.playerStats});
 }
 
 class TeamStatsAggregate {
@@ -35,10 +32,7 @@ class TeamStatsAggregate {
   int batted = 0;
   int safeties = 0;
 
-  TeamStatsAggregate({
-    required this.teamRef,
-    required this.teamName,
-  });
+  TeamStatsAggregate({required this.teamRef, required this.teamName});
 }
 
 class PlayerStatsAggregate {
@@ -255,21 +249,19 @@ AggregatedStats aggregateStats({
       return a.teamName.compareTo(b.teamName);
     });
 
-  final orderedPlayers = playerStatsById.values
-      .where((player) => _playerHasRegisteredStats(player))
-      .toList()
-    ..sort((a, b) {
-      final teamCompare = a.teamName.compareTo(b.teamName);
-      if (teamCompare != 0) {
-        return teamCompare;
-      }
-      return a.playerName.compareTo(b.playerName);
-    });
+  final orderedPlayers =
+      playerStatsById.values
+          .where((player) => _playerHasRegisteredStats(player))
+          .toList()
+        ..sort((a, b) {
+          final teamCompare = a.teamName.compareTo(b.teamName);
+          if (teamCompare != 0) {
+            return teamCompare;
+          }
+          return a.playerName.compareTo(b.playerName);
+        });
 
-  return AggregatedStats(
-    teamStats: orderedTeams,
-    playerStats: orderedPlayers,
-  );
+  return AggregatedStats(teamStats: orderedTeams, playerStats: orderedPlayers);
 }
 
 String _resolveOffenseTeamRef({

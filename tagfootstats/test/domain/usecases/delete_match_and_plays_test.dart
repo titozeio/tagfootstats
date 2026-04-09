@@ -40,9 +40,9 @@ void main() {
       ),
     ];
 
-    when(() => playRepository.getPlaysByMatch('match_1')).thenAnswer(
-      (_) async => plays,
-    );
+    when(
+      () => playRepository.getPlaysByMatch('match_1'),
+    ).thenAnswer((_) async => plays);
     when(() => playRepository.deletePlay(any())).thenAnswer((_) async {});
     when(() => matchRepository.deleteMatch('match_1')).thenAnswer((_) async {});
 

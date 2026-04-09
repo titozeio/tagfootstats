@@ -84,7 +84,9 @@ class _AdvancedStatsLoader extends StatelessWidget {
     final matches = (await matchRepo.getMatches())
         .where((match) => hasValidOpponentReference(match.opponentId))
         .toList();
-    final plays = await playRepo.getPlaysByMatches(matches.map((m) => m.id).toList());
+    final plays = await playRepo.getPlaysByMatches(
+      matches.map((m) => m.id).toList(),
+    );
     final teams = await teamRepo.getTeams();
     final teamNamesById = {for (final team in teams) team.id: team.name};
 
@@ -237,15 +239,17 @@ class _PlayersTab extends StatelessWidget {
                           radius: 14,
                           backgroundColor: Colors.white12,
                           child: ClipOval(
-                            child: (stats.photoUrl != null &&
+                            child:
+                                (stats.photoUrl != null &&
                                     stats.photoUrl!.trim().isNotEmpty)
                                 ? Image.network(
                                     stats.photoUrl!.trim(),
                                     width: 28,
                                     height: 28,
                                     fit: BoxFit.cover,
-                                    errorBuilder: (context, error, stackTrace) =>
-                                        const Icon(Icons.person, size: 14),
+                                    errorBuilder:
+                                        (context, error, stackTrace) =>
+                                            const Icon(Icons.person, size: 14),
                                   )
                                 : const Icon(Icons.person, size: 14),
                           ),
@@ -302,10 +306,7 @@ class _StatChip extends StatelessWidget {
   final String label;
   final int value;
 
-  const _StatChip({
-    required this.label,
-    required this.value,
-  });
+  const _StatChip({required this.label, required this.value});
 
   @override
   Widget build(BuildContext context) {
