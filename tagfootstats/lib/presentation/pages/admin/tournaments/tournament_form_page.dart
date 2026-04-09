@@ -2,12 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:tagfootstats/core/theme/app_colors.dart';
+import 'package:tagfootstats/core/utils/team_reference_utils.dart';
 import 'package:tagfootstats/domain/entities/tournament.dart';
 import 'package:tagfootstats/domain/entities/team.dart';
 import 'package:tagfootstats/domain/entities/match.dart' as entity;
 import 'package:tagfootstats/domain/repositories/tournament_repository.dart';
 import 'package:tagfootstats/domain/repositories/team_repository.dart';
 import 'package:tagfootstats/domain/repositories/match_repository.dart';
+import 'package:tagfootstats/domain/repositories/play_repository.dart';
+import 'package:tagfootstats/domain/usecases/delete_match_and_plays.dart';
 import 'package:tagfootstats/presentation/bloc/app/app_bloc.dart';
 
 class TournamentFormPage extends StatefulWidget {
@@ -28,6 +31,7 @@ class _TournamentFormPageState extends State<TournamentFormPage> {
   TournamentType _type = TournamentType.liga;
   List<String> _teamIds = [];
   List<entity.Match> _matches = [];
+  Map<String, String> _teamNames = {};
   bool _isLoading = true;
 
   @override
@@ -42,8 +46,10 @@ class _TournamentFormPageState extends State<TournamentFormPage> {
     if (widget.id != null) {
       final tournamentRepo = context.read<TournamentRepository>();
       final matchRepo = context.read<MatchRepository>();
+      final teamRepo = context.read<TeamRepository>();
 
       final tournament = await tournamentRepo.getTournamentById(widget.id!);
+      final teams = await teamRepo.getTeams();
       if (tournament != null) {
         final matches = await matchRepo.getMatchesByTournament(widget.id!);
         setState(() {
@@ -53,6 +59,7 @@ class _TournamentFormPageState extends State<TournamentFormPage> {
           _type = tournament.type;
           _teamIds = List.from(tournament.teamIds);
           _matches = matches;
+          _teamNames = {for (final team in teams) team.id: team.name};
         });
       }
     } else {
@@ -358,10 +365,12 @@ class _TournamentFormPageState extends State<TournamentFormPage> {
     return Card(
       margin: const EdgeInsets.only(bottom: 8),
       child: ListTile(
-        onTap: () => context.push('/matches/${match.id}'),
+        onTap: () => context.push('/match/${match.id}'),
         leading: const Icon(Icons.scoreboard, color: AppColors.nflGold),
         title: Text('${match.homeScore} - ${match.awayScore}'),
-        subtitle: Text('CONTRA ${match.opponentId}'),
+        subtitle: Text(
+          'CONTRA ${resolveTeamName(match.opponentId, _teamNames)}',
+        ),
         trailing: IconButton(
           icon: const Icon(Icons.delete_outline, color: AppColors.accentRed),
           onPressed: () => _deleteMatch(match.id),
@@ -393,8 +402,11 @@ class _TournamentFormPageState extends State<TournamentFormPage> {
     );
 
     if (confirmed == true && mounted) {
-      final matchRepo = context.read<MatchRepository>();
-      await matchRepo.deleteMatch(id);
+      final deleteMatchAndPlays = DeleteMatchAndPlays(
+        context.read<MatchRepository>(),
+        context.read<PlayRepository>(),
+      );
+      await deleteMatchAndPlays(id);
       if (mounted) _loadData();
     }
   }

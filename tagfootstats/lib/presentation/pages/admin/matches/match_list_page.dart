@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:tagfootstats/core/theme/app_colors.dart';
+import 'package:tagfootstats/core/utils/team_reference_utils.dart';
 import 'package:tagfootstats/domain/entities/match.dart' as entity;
 import 'package:tagfootstats/domain/repositories/match_repository.dart';
+import 'package:tagfootstats/domain/repositories/play_repository.dart';
+import 'package:tagfootstats/domain/usecases/delete_match_and_plays.dart';
 import 'package:tagfootstats/presentation/bloc/app/app_bloc.dart';
 import 'package:tagfootstats/presentation/widgets/match_summary_card.dart';
-
 import 'package:tagfootstats/domain/repositories/team_repository.dart';
 
 class MatchListPage extends StatefulWidget {
@@ -79,17 +82,74 @@ class _MatchListPageState extends State<MatchListPage> {
       itemCount: _matches!.length,
       itemBuilder: (context, index) {
         final match = _matches![index];
-        final opponentName = _teamNames[match.opponentId] ?? match.opponentId;
+        final opponentName = resolveTeamName(match.opponentId, _teamNames);
 
-        return InkWell(
-          onTap: () => context.push('/match/${match.id}'),
-          child: MatchSummaryCard(
-            match: match,
-            ownTeam: appState.ownTeam,
-            opponentName: opponentName,
-          ),
+        return Stack(
+          children: [
+            InkWell(
+              onTap: () => context.push('/match/${match.id}'),
+              child: MatchSummaryCard(
+                match: match,
+                ownTeam: appState.ownTeam,
+                opponentName: opponentName,
+              ),
+            ),
+            Positioned(
+              top: 18,
+              right: 18,
+              child: IconButton(
+                tooltip: 'Eliminar partido',
+                onPressed: () => _confirmDelete(match.id),
+                icon: const Icon(
+                  Icons.delete_outline,
+                  color: AppColors.accentRed,
+                ),
+              ),
+            ),
+          ],
         );
       },
     );
+  }
+
+  Future<void> _confirmDelete(String matchId) async {
+    final matchRepository = context.read<MatchRepository>();
+    final playRepository = context.read<PlayRepository>();
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('¿Eliminar partido?'),
+        content: const Text(
+          'Se eliminarán el partido y todas sus jugadas asociadas.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancelar'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text(
+              'Eliminar',
+              style: TextStyle(color: AppColors.accentRed),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true) {
+      return;
+    }
+
+    final deleteMatchAndPlays = DeleteMatchAndPlays(
+      matchRepository,
+      playRepository,
+    );
+    await deleteMatchAndPlays(matchId);
+    if (!mounted) {
+      return;
+    }
+    await _loadData();
   }
 }

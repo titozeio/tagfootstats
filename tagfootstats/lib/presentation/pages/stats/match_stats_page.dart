@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:tagfootstats/core/theme/app_colors.dart';
+import 'package:tagfootstats/core/utils/stats_aggregator.dart';
+import 'package:tagfootstats/core/utils/team_reference_utils.dart';
 import 'package:tagfootstats/core/utils/feedback_utils.dart';
 import 'package:tagfootstats/domain/entities/match.dart';
 import 'package:tagfootstats/domain/entities/play.dart';
@@ -10,6 +12,7 @@ class MatchStatsPage extends StatelessWidget {
   final Match match;
   final List<Play> plays;
   final List<Player> players;
+  final List<Player> opponentPlayers;
   final String ownTeamName;
   final String opponentTeamName;
 
@@ -18,6 +21,7 @@ class MatchStatsPage extends StatelessWidget {
     required this.match,
     required this.plays,
     required this.players,
+    required this.opponentPlayers,
     required this.ownTeamName,
     required this.opponentTeamName,
   });
@@ -27,6 +31,25 @@ class MatchStatsPage extends StatelessWidget {
     final isUserHome = match.locationType == LocationType.local;
     final homeTeamName = isUserHome ? ownTeamName : opponentTeamName;
     final awayTeamName = isUserHome ? opponentTeamName : ownTeamName;
+    final ownTeamId = _resolveOwnTeamId();
+    final opponentTeamId = _resolveOpponentTeamId();
+    final aggregated = aggregateStats(
+      matches: [match],
+      plays: plays,
+      ownTeamId: ownTeamId,
+      ownTeamName: ownTeamName,
+      teamNamesById: {opponentTeamId: opponentTeamName},
+      players: [...players, ...opponentPlayers],
+    );
+    final teamStatsByRef = {
+      for (final stats in aggregated.teamStats) stats.teamRef: stats,
+    };
+    final playerStatsByRef = <String, List<PlayerStatsAggregate>>{};
+    for (final playerStat in aggregated.playerStats) {
+      playerStatsByRef.putIfAbsent(playerStat.teamRef, () => []).add(playerStat);
+    }
+    final homeTeamRef = isUserHome ? ownTeamId : opponentTeamId;
+    final awayTeamRef = isUserHome ? opponentTeamId : ownTeamId;
 
     return Scaffold(
       appBar: AppBar(
@@ -44,12 +67,22 @@ class MatchStatsPage extends StatelessWidget {
           children: [
             _buildScoreboardHeader(homeTeamName, awayTeamName),
             const SizedBox(height: 16),
-            _buildTeamSection(context, homeTeamName, true), // isHome = true
+            _buildTeamSection(
+              teamName: homeTeamName,
+              stats: teamStatsByRef[homeTeamRef],
+              playerStats: playerStatsByRef[homeTeamRef] ?? const [],
+              isHomeTeam: true,
+            ),
             const Padding(
               padding: EdgeInsets.symmetric(horizontal: 24, vertical: 8),
               child: Divider(color: Colors.white10, thickness: 2),
             ),
-            _buildTeamSection(context, awayTeamName, false), // isHome = false
+            _buildTeamSection(
+              teamName: awayTeamName,
+              stats: teamStatsByRef[awayTeamRef],
+              playerStats: playerStatsByRef[awayTeamRef] ?? const [],
+              isHomeTeam: false,
+            ),
             const SizedBox(height: 32),
           ],
         ),
@@ -136,10 +169,12 @@ class MatchStatsPage extends StatelessWidget {
     );
   }
 
-  Widget _buildTeamSection(BuildContext context, String teamName, bool isOwn) {
-    final teamStats = _calculateTeamStats(isOwn);
-    final playerStats = _calculatePlayerStats(isOwn);
-
+  Widget _buildTeamSection({
+    required String teamName,
+    required TeamStatsAggregate? stats,
+    required List<PlayerStatsAggregate> playerStats,
+    required bool isHomeTeam,
+  }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -150,7 +185,9 @@ class MatchStatsPage extends StatelessWidget {
               Container(
                 width: 4,
                 height: 20,
-                color: isOwn ? AppColors.primaryBlue : AppColors.accentRed,
+                color: isHomeTeam
+                    ? AppColors.primaryBlue
+                    : AppColors.accentRed,
               ),
               const SizedBox(width: 8),
               Text(
@@ -164,7 +201,7 @@ class MatchStatsPage extends StatelessWidget {
             ],
           ),
         ),
-        _buildCompactTeamGrid(teamStats),
+        _buildCompactTeamGrid(stats),
         if (playerStats.isNotEmpty) ...[
           const Padding(
             padding: EdgeInsets.only(left: 16, top: 16),
@@ -178,12 +215,12 @@ class MatchStatsPage extends StatelessWidget {
             ),
           ),
           _buildPlayerStatsList(playerStats),
-        ] else if (isOwn) ...[
+        ] else ...[
           const Padding(
             padding: EdgeInsets.all(16),
             child: Center(
               child: Text(
-                'Sin datos de jugadores propios registrados',
+                'Sin datos de jugadores registrados',
                 style: TextStyle(fontSize: 12, color: Colors.grey),
               ),
             ),
@@ -193,19 +230,38 @@ class MatchStatsPage extends StatelessWidget {
     );
   }
 
-  Widget _buildCompactTeamGrid(Map<String, dynamic> stats) {
+  Widget _buildCompactTeamGrid(TeamStatsAggregate? stats) {
+    if (stats == null) {
+      return const Padding(
+        padding: EdgeInsets.all(16),
+        child: Text(
+          'Sin estadísticas registradas para este equipo',
+          style: TextStyle(color: Colors.grey),
+        ),
+      );
+    }
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: Wrap(
         spacing: 8,
         runSpacing: 8,
         children: [
-          _buildCompactStatCard('YDS', '${stats['totalYards']}'),
-          _buildCompactStatCard('TD', '${stats['tds']}'),
-          _buildCompactStatCard('SACK', '${stats['sacksRec']}'),
-          _buildCompactStatCard('INT', '${stats['intsThrow']}'),
-          _buildCompactStatCard('FALTAS', '${stats['fouls']}'),
-          _buildCompactStatCard('EFF 3/4', '${stats['efficiency']}%'),
+          _buildCompactStatCard('YDS', '${stats.totalYards}'),
+          _buildCompactStatCard('PASE', '${stats.passes}'),
+          _buildCompactStatCard('CARR', '${stats.runs}'),
+          _buildCompactStatCard('SACK', '${stats.sacks}'),
+          _buildCompactStatCard('SACK REC', '${stats.sacksReceived}'),
+          _buildCompactStatCard('FUM', '${stats.fumbles}'),
+          _buildCompactStatCard('FALTAS', '${stats.fouls}'),
+          _buildCompactStatCard('TD', '${stats.touchdowns}'),
+          _buildCompactStatCard('NO PAT', '${stats.noPat}'),
+          _buildCompactStatCard('1PT', '${stats.pat1}'),
+          _buildCompactStatCard('2PT', '${stats.pat2}'),
+          _buildCompactStatCard('FLAG', '${stats.flagPulls}'),
+          _buildCompactStatCard('INT', '${stats.interceptions}'),
+          _buildCompactStatCard('BATTED', '${stats.batted}'),
+          _buildCompactStatCard('SAFETY', '${stats.safeties}'),
         ],
       ),
     );
@@ -244,7 +300,7 @@ class MatchStatsPage extends StatelessWidget {
     );
   }
 
-  Widget _buildPlayerStatsList(List<_PlayerStatRow> stats) {
+  Widget _buildPlayerStatsList(List<PlayerStatsAggregate> stats) {
     return ListView.builder(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
@@ -264,7 +320,7 @@ class MatchStatsPage extends StatelessWidget {
               SizedBox(
                 width: 30,
                 child: Text(
-                  '#${stat.player.dorsal}',
+                  '#${stat.dorsal}',
                   style: const TextStyle(
                     fontWeight: FontWeight.w900,
                     color: Colors.grey,
@@ -277,7 +333,7 @@ class MatchStatsPage extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      stat.player.fullName.toUpperCase(),
+                      stat.playerName.toUpperCase(),
                       style: const TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 13,
@@ -285,7 +341,7 @@ class MatchStatsPage extends StatelessWidget {
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      'YDS: ${stat.yards} | TD: ${stat.tds} | SACK: ${stat.sacks} | INT: ${stat.ints}',
+                      'YDS: ${stat.yards} | PASE: ${stat.passes} | CARR: ${stat.runs} | TD: ${stat.touchdowns} | SACK: ${stat.sacks} | FUM: ${stat.fumbles} | FAL: ${stat.fouls} | FLAG: ${stat.flagPulls} | INT: ${stat.interceptions} | BAT: ${stat.batted} | SAF: ${stat.safeties}',
                       style: const TextStyle(fontSize: 10, color: Colors.grey),
                     ),
                   ],
@@ -306,99 +362,47 @@ class MatchStatsPage extends StatelessWidget {
     );
   }
 
-  Map<String, dynamic> _calculateTeamStats(bool isHome) {
-    int totalYards = 0;
-    int tds = 0;
-    int sacksRec = 0;
-    int intsThrow = 0;
-    int fouls = 0;
-    int totalThirdFourth = 0;
-    int successThirdFourth = 0;
-
-    // isHome means "Own Team" in our recording logic.
-    // If our team is LOCAL, then isHome == true means LOCAL stats.
-    // If our team is VISITANTE, then isHome == true means VISITANTE stats?
-    // Actually, match.locationType tells us if we are local.
-
-    final weAreLocal = match.locationType == LocationType.local;
-    final isOurTeam = isHome == weAreLocal;
-
-    for (var play in plays) {
-      final belongsToThisTeam = isOurTeam
-          ? (play.phase == PlayPhase.ataque)
-          : (play.phase == PlayPhase.defensa);
-
-      // Note: This logic assumes that if we are in defense, the opponent is in attack.
-      // And we attribute the yards of the play to the attacking team.
-
-      if (belongsToThisTeam) {
-        totalYards += play.yardas;
-        if (play.points == 6) tds++;
-        if (play.action == 'SACK') sacksRec++;
-        if (play.outcome.contains('INTERCEPTADO')) intsThrow++;
-        if (play.action == 'FALTA' && play.penalizingTeamId != null) {
-          // If we track penalizingTeamId, we should use it.
-          // But for now, let's keep it simple.
-          fouls++;
-        }
-        if (play.down == 3 || play.down == 4) {
-          totalThirdFourth++;
-          if (play.yardas >= 5) successThirdFourth++;
-        }
-      }
+  String _resolveOwnTeamId() {
+    if (players.isNotEmpty) {
+      return players.first.teamId;
     }
-
-    return {
-      'totalYards': totalYards,
-      'tds': tds,
-      'sacksRec': sacksRec,
-      'intsThrow': intsThrow,
-      'fouls': fouls,
-      'efficiency': totalThirdFourth == 0
-          ? 0
-          : (successThirdFourth * 100 / totalThirdFourth).round(),
-    };
+    if (match.locationType == LocationType.local) {
+      return 'HOME_TEAM';
+    }
+    return 'AWAY_TEAM';
   }
 
-  List<_PlayerStatRow> _calculatePlayerStats(bool isHome) {
-    final weAreLocal = match.locationType == LocationType.local;
-    final isOurTeam = isHome == weAreLocal;
-
-    // We only have our own players data for now
-    if (!isOurTeam) return [];
-
-    final Map<String, _PlayerStatRow> statsMap = {};
-
-    for (var player in players) {
-      statsMap[player.id] = _PlayerStatRow(player: player);
+  String _resolveOpponentTeamId() {
+    if (opponentPlayers.isNotEmpty) {
+      return opponentPlayers.first.teamId;
     }
-
-    for (var play in plays) {
-      for (var playerId in play.involvedPlayerIds) {
-        final stat = statsMap[playerId];
-        if (stat != null) {
-          stat.yards += play.yardas;
-          stat.points += play.points;
-          if (play.points == 6) stat.tds++;
-          if (play.action == 'SACK') stat.sacks++;
-          if (play.outcome.contains('INTERCEPTADO')) stat.ints++;
-        }
-      }
-    }
-
-    return statsMap.values
-        .where(
-          (s) => s.yards != 0 || s.points != 0 || s.sacks != 0 || s.ints != 0,
-        )
-        .toList()
-      ..sort((a, b) => b.points.compareTo(a.points));
+    return canonicalizeTeamReference(
+      match.opponentId,
+      {match.opponentId: opponentTeamName},
+    );
   }
 
   void _copyStatsToClipboard(BuildContext context) {
-    final team1Stats = _calculateTeamStats(true);
-    final player1Stats = _calculatePlayerStats(true);
-    final team2Stats = _calculateTeamStats(false);
-    final player2Stats = _calculatePlayerStats(false);
+    final isUserHome = match.locationType == LocationType.local;
+    final ownTeamId = _resolveOwnTeamId();
+    final opponentTeamId = _resolveOpponentTeamId();
+    final aggregated = aggregateStats(
+      matches: [match],
+      plays: plays,
+      ownTeamId: ownTeamId,
+      ownTeamName: ownTeamName,
+      teamNamesById: {opponentTeamId: opponentTeamName},
+      players: [...players, ...opponentPlayers],
+    );
+    final teamStatsByRef = {
+      for (final stats in aggregated.teamStats) stats.teamRef: stats,
+    };
+    final playerStatsByRef = <String, List<PlayerStatsAggregate>>{};
+    for (final playerStat in aggregated.playerStats) {
+      playerStatsByRef.putIfAbsent(playerStat.teamRef, () => []).add(playerStat);
+    }
+    final homeTeamRef = isUserHome ? ownTeamId : opponentTeamId;
+    final awayTeamRef = isUserHome ? opponentTeamId : ownTeamId;
 
     final buffer = StringBuffer();
     buffer.writeln(
@@ -410,18 +414,20 @@ class MatchStatsPage extends StatelessWidget {
 
     void writeTeam(
       String name,
-      Map<String, dynamic> tStats,
-      List<_PlayerStatRow> pStats,
+      TeamStatsAggregate? tStats,
+      List<PlayerStatsAggregate> pStats,
     ) {
       buffer.writeln('EQUIPO: ${name.toUpperCase()}');
-      buffer.writeln(
-        'Yards: ${tStats['totalYards']} | TD: ${tStats['tds']} | Sacks: ${tStats['sacksRec']} | Int: ${tStats['intsThrow']}',
-      );
+      if (tStats != null) {
+        buffer.writeln(
+          'Yards: ${tStats.totalYards} | Pase: ${tStats.passes} | Carrera: ${tStats.runs} | Sack: ${tStats.sacks} | Sack Rec: ${tStats.sacksReceived} | Fumble: ${tStats.fumbles} | Falta: ${tStats.fouls} | TD: ${tStats.touchdowns} | No PAT: ${tStats.noPat} | 1PT: ${tStats.pat1} | 2PT: ${tStats.pat2} | Flag: ${tStats.flagPulls} | INT: ${tStats.interceptions} | Batted: ${tStats.batted} | Safety: ${tStats.safeties}',
+        );
+      }
       if (pStats.isNotEmpty) {
         buffer.writeln('ESTADÍSTICAS JUGADORES:');
         for (var s in pStats) {
           buffer.writeln(
-            '  #${s.player.dorsal} ${s.player.fullName}: ${s.points} PTS | ${s.yards} YDS | ${s.tds} TD',
+            '  #${s.dorsal} ${s.playerName}: ${s.points} PTS | ${s.yards} YDS | PASE ${s.passes} | CARR ${s.runs} | SACK ${s.sacks} | FUM ${s.fumbles} | FAL ${s.fouls} | TD ${s.touchdowns} | 1PT ${s.pat1} | 2PT ${s.pat2} | FLAG ${s.flagPulls} | INT ${s.interceptions} | BAT ${s.batted} | SAF ${s.safeties}',
           );
         }
       }
@@ -431,24 +437,17 @@ class MatchStatsPage extends StatelessWidget {
     }
 
     writeTeam(
-      'LOCAL${match.locationType == LocationType.local ? ' (PROPIO)' : ''}',
-      team1Stats,
-      player1Stats,
+      isUserHome ? ownTeamName : opponentTeamName,
+      teamStatsByRef[homeTeamRef],
+      playerStatsByRef[homeTeamRef] ?? const [],
     );
-    writeTeam(opponentTeamName, team2Stats, player2Stats);
+    writeTeam(
+      isUserHome ? opponentTeamName : ownTeamName,
+      teamStatsByRef[awayTeamRef],
+      playerStatsByRef[awayTeamRef] ?? const [],
+    );
 
     Clipboard.setData(ClipboardData(text: buffer.toString()));
     FeedbackUtils.showSuccess(context, 'Estadísticas copiadas al portapapeles');
   }
-}
-
-class _PlayerStatRow {
-  final Player player;
-  int yards = 0;
-  int points = 0;
-  int tds = 0;
-  int sacks = 0;
-  int ints = 0;
-
-  _PlayerStatRow({required this.player});
 }

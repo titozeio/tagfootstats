@@ -94,7 +94,7 @@ class FakeDataGenerator {
     final match1 = entity.Match(
       id: 'match_fake_1',
       tournamentId: 'tour_fake',
-      opponentId: 'Spartans',
+      opponentId: 'opp_1',
       dateTime: now.subtract(const Duration(days: 7)),
       locationType: entity.LocationType.local,
       homeScore: 24,
@@ -103,7 +103,7 @@ class FakeDataGenerator {
     final match2 = entity.Match(
       id: 'match_fake_2',
       tournamentId: 'tour_fake',
-      opponentId: 'Raiders',
+      opponentId: 'opp_2',
       dateTime: now.subtract(const Duration(days: 2)),
       locationType: entity.LocationType.visitante,
       homeScore: 7,

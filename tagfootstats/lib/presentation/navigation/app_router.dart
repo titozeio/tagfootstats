@@ -21,6 +21,7 @@ import 'package:tagfootstats/domain/repositories/match_repository.dart';
 import 'package:tagfootstats/domain/repositories/play_repository.dart';
 import 'package:tagfootstats/domain/repositories/player_repository.dart';
 import 'package:tagfootstats/domain/repositories/team_repository.dart';
+import 'package:tagfootstats/core/utils/team_reference_utils.dart';
 import 'package:tagfootstats/domain/entities/match.dart' as entity;
 import 'package:tagfootstats/domain/entities/play.dart';
 import 'package:tagfootstats/domain/entities/player.dart';
@@ -177,23 +178,7 @@ class MatchStatsLoader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<List<dynamic>>(
-      future:
-          Future.wait([
-                context.read<MatchRepository>().getMatchById(matchId),
-                context.read<PlayRepository>().getPlaysByMatch(matchId),
-                context.read<PlayerRepository>().getPlayersByTeam(teamId),
-              ])
-              .then((results) async {
-                final m = results[0] as entity.Match?;
-                if (m != null) {
-                  final opponent = await context
-                      .read<TeamRepository>()
-                      .getTeamById(m.opponentId);
-                  return [...results, opponent?.name ?? m.opponentId];
-                }
-                return [...results, 'Contrincante'];
-              })
-              .timeout(const Duration(seconds: 15)),
+      future: _loadData(context).timeout(const Duration(seconds: 15)),
       builder: (context, snapshot) {
         if (snapshot.hasError) {
           return Scaffold(
@@ -257,11 +242,40 @@ class MatchStatsLoader extends StatelessWidget {
           match: data[0] as entity.Match,
           plays: data[1] as List<Play>,
           players: data[2] as List<Player>,
+          opponentPlayers: data[3] as List<Player>,
           ownTeamName: ownTeamName,
-          opponentTeamName: data[3] as String,
+          opponentTeamName: data[4] as String,
         );
       },
     );
+  }
+
+  Future<List<dynamic>> _loadData(BuildContext context) async {
+    final matchRepository = context.read<MatchRepository>();
+    final playRepository = context.read<PlayRepository>();
+    final playerRepository = context.read<PlayerRepository>();
+    final teamRepository = context.read<TeamRepository>();
+
+    final match = await matchRepository.getMatchById(matchId);
+    final plays = await playRepository.getPlaysByMatch(matchId);
+    final ownPlayers = await playerRepository.getPlayersByTeam(teamId);
+
+    if (match == null) {
+      return [null, plays, ownPlayers, const <Player>[], 'Contrincante'];
+    }
+
+    final teams = await teamRepository.getTeams();
+    final teamNamesById = {for (final team in teams) team.id: team.name};
+    final opponentTeamRef = canonicalizeTeamReference(
+      match.opponentId,
+      teamNamesById,
+    );
+    final opponentPlayers = await playerRepository.getPlayersByTeam(
+      opponentTeamRef,
+    );
+    final opponentTeamName = resolveTeamName(match.opponentId, teamNamesById);
+
+    return [match, plays, ownPlayers, opponentPlayers, opponentTeamName];
   }
 }
 
