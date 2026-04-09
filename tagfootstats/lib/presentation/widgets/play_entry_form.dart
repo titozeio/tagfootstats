@@ -7,6 +7,8 @@ import '../../domain/entities/player.dart';
 class PlayEntryForm extends StatefulWidget {
   final PlayPhase phase;
   final List<Player> players;
+  final List<Player> opponentPlayers;
+  final String opponentTeamId;
   final Function(
     String action,
     String outcome,
@@ -15,6 +17,12 @@ class PlayEntryForm extends StatefulWidget {
     int minute,
     int? down,
     List<String> players,
+    List<String> opponentPlayers,
+    String? scoringTeamId,
+    String? foulType,
+    bool isLossOfDown,
+    bool isAutomaticFirstDown,
+    String? penalizingTeamId,
   )
   onPlayAdded;
   final int homeScore;
@@ -25,6 +33,8 @@ class PlayEntryForm extends StatefulWidget {
     super.key,
     required this.phase,
     this.players = const [],
+    this.opponentPlayers = const [],
+    required this.opponentTeamId,
     required this.onPlayAdded,
     this.homeScore = 0,
     this.awayScore = 0,
@@ -37,6 +47,7 @@ class PlayEntryForm extends StatefulWidget {
 
 class _PlayEntryFormState extends State<PlayEntryForm> {
   String? _selectedPlayerId;
+  String? _selectedOpponentPlayerId;
   String? _selectedAction;
   int _yards = 0;
   bool _isTouchdown = false;
@@ -45,6 +56,10 @@ class _PlayEntryFormState extends State<PlayEntryForm> {
   int? _selectedDown;
   String? _selectedPassOutcome;
   String? _selectedPlayer2Id;
+  String? _foulType;
+  bool _isLossOfDown = false;
+  bool _isAutomaticFirstDown = false;
+  String? _penalizingTeamId;
 
   @override
   void didUpdateWidget(PlayEntryForm oldWidget) {
@@ -65,6 +80,10 @@ class _PlayEntryFormState extends State<PlayEntryForm> {
       _selectedDown = null;
       _selectedPassOutcome = null;
       _selectedPlayer2Id = null;
+      _foulType = null;
+      _isLossOfDown = false;
+      _isAutomaticFirstDown = false;
+      _penalizingTeamId = null;
     });
   }
 
@@ -96,6 +115,10 @@ class _PlayEntryFormState extends State<PlayEntryForm> {
             ],
             const SizedBox(height: 20),
             _buildYardageSelector(),
+            if (_selectedAction == 'FALTA') ...[
+              const SizedBox(height: 20),
+              _buildFoulDetails(),
+            ],
             const SizedBox(height: 24),
             _buildOutcomeToggles(),
             const SizedBox(height: 32),
@@ -171,8 +194,8 @@ class _PlayEntryFormState extends State<PlayEntryForm> {
 
   Widget _buildHeader() {
     final color = widget.phase == PlayPhase.ataque
-        ? AppColors.primaryBlue
-        : AppColors.accentRed;
+        ? AppColors.offensivePurple
+        : AppColors.defensiveGreen;
     return Row(
       children: [
         Container(
@@ -341,25 +364,33 @@ class _PlayEntryFormState extends State<PlayEntryForm> {
               child: DropdownButtonFormField<String>(
                 initialValue: _selectedPlayerId,
                 decoration: _inputDecoration(
-                  _selectedAction == 'PASE' ? 'QB' : 'JUGADOR',
+                  _selectedAction == 'PASE' ? 'QB' : 'JUGADOR PROPIO',
                 ),
-                items: _playerItems(),
+                items: _playerItems(widget.players),
                 onChanged: (val) => setState(() => _selectedPlayerId = val),
               ),
             ),
-            if (_selectedAction == 'PASE') ...[
-              const SizedBox(width: 12),
-              Expanded(
-                child: DropdownButtonFormField<String>(
-                  initialValue: _selectedPlayer2Id,
-                  decoration: _inputDecoration('RECEPTOR'),
-                  items: _playerItems(),
-                  onChanged: (val) => setState(() => _selectedPlayer2Id = val),
-                ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: DropdownButtonFormField<String>(
+                initialValue: _selectedOpponentPlayerId,
+                decoration: _inputDecoration('JUGADOR RIVAL'),
+                items: _playerItems(widget.opponentPlayers, isOpponent: true),
+                onChanged: (val) =>
+                    setState(() => _selectedOpponentPlayerId = val),
               ),
-            ],
+            ),
           ],
         ),
+        if (_selectedAction == 'PASE') ...[
+          const SizedBox(height: 12),
+          DropdownButtonFormField<String>(
+            initialValue: _selectedPlayer2Id,
+            decoration: _inputDecoration('RECEPTOR / 2º JUGADOR'),
+            items: _playerItems(widget.players),
+            onChanged: (val) => setState(() => _selectedPlayer2Id = val),
+          ),
+        ],
       ],
     );
   }
@@ -377,8 +408,20 @@ class _PlayEntryFormState extends State<PlayEntryForm> {
     );
   }
 
-  List<DropdownMenuItem<String>> _playerItems() {
-    return widget.players
+  List<DropdownMenuItem<String>> _playerItems(
+    List<Player> players, {
+    bool isOpponent = false,
+  }) {
+    if (isOpponent && players.isEmpty) {
+      return [
+        const DropdownMenuItem(
+          value: 'opponent_default',
+          child: Text('JUGADOR RIVAL'),
+        ),
+      ];
+    }
+
+    return players
         .map(
           (p) => DropdownMenuItem(
             value: p.id,
@@ -390,8 +433,8 @@ class _PlayEntryFormState extends State<PlayEntryForm> {
 
   Widget _buildActionGrid() {
     final actions = widget.phase == PlayPhase.ataque
-        ? ['PASE', 'CARRERA', 'SACK', 'FUMBLE']
-        : ['FLAG QUITADO', 'SACK', 'INTERCEPCIÓN', 'BATTED', 'SAFETY'];
+        ? ['PASE', 'CARRERA', 'SACK', 'FUMBLE', 'FALTA']
+        : ['FLAG QUITADO', 'SACK', 'INTERCEPCIÓN', 'BATTED', 'SAFETY', 'FALTA'];
 
     return Wrap(
       spacing: 12,
@@ -459,21 +502,25 @@ class _PlayEntryFormState extends State<PlayEntryForm> {
   }
 
   Widget _buildOutcomeToggles() {
-    return Row(
+    return Column(
       children: [
-        Expanded(
-          child: _buildToggleButton(
-            'TOUCHDOWN',
-            _isTouchdown,
-            () => setState(() {
-              _isTouchdown = !_isTouchdown;
-              if (_isTouchdown) _extraPointValue = 0;
-            }),
-            Icons.star,
-          ),
+        Row(
+          children: [
+            Expanded(
+              child: _buildToggleButton(
+                'TOUCHDOWN',
+                _isTouchdown,
+                () => setState(() {
+                  _isTouchdown = !_isTouchdown;
+                  if (_isTouchdown) _extraPointValue = 0;
+                }),
+                Icons.star,
+              ),
+            ),
+            const SizedBox(width: 12),
+            _buildExtraPointSelector(),
+          ],
         ),
-        const SizedBox(width: 12),
-        _buildExtraPointSelector(),
       ],
     );
   }
@@ -557,6 +604,114 @@ class _PlayEntryFormState extends State<PlayEntryForm> {
     );
   }
 
+  Widget _buildFoulDetails() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'DETALLES DE LA FALTA',
+          style: TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.bold,
+            color: Colors.grey,
+          ),
+        ),
+        const SizedBox(height: 12),
+        DropdownButtonFormField<String>(
+          initialValue: _foulType,
+          decoration: _inputDecoration('TIPO DE FALTA'),
+          items: [
+            'OFFSIDE / ENCROACHMENT',
+            'PASS INTERFERENCE',
+            'ILLEGAL CONTACT',
+            'HOLDING',
+            'ROUGHING THE PASSER',
+            'FALSE START',
+            'ILLEGAL MOTION',
+            'FLAG GUARDING',
+            'CHARGING',
+            'BLOCKING',
+            'OTRA',
+          ].map((f) => DropdownMenuItem(value: f, child: Text(f))).toList(),
+          onChanged: (val) => setState(() => _foulType = val),
+        ),
+        const SizedBox(height: 12),
+        const Text(
+          'EQUIPO PENALIZADO',
+          style: TextStyle(
+            fontSize: 10,
+            color: Colors.grey,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Row(
+          children: [
+            _buildSmallTabButton(
+              'PROPIO',
+              _penalizingTeamId == 'OWN',
+              () => setState(() => _penalizingTeamId = 'OWN'),
+            ),
+            const SizedBox(width: 8),
+            _buildSmallTabButton(
+              'RIVAL',
+              _penalizingTeamId == 'OPPONENT',
+              () => setState(() => _penalizingTeamId = 'OPPONENT'),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        Row(
+          children: [
+            Expanded(
+              child: _buildToggleButton(
+                'LOD (Loss of Down)',
+                _isLossOfDown,
+                () => setState(() => _isLossOfDown = !_isLossOfDown),
+                Icons.warning_amber,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: _buildToggleButton(
+                '1st DOWN AUTO',
+                _isAutomaticFirstDown,
+                () => setState(
+                  () => _isAutomaticFirstDown = !_isAutomaticFirstDown,
+                ),
+                Icons.forward,
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSmallTabButton(String label, bool active, VoidCallback onTap) {
+    return InkWell(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        decoration: BoxDecoration(
+          color: active ? AppColors.nflGold : Colors.black26,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(
+            color: active ? AppColors.nflGold : AppColors.glassBorder,
+          ),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            fontSize: 10,
+            fontWeight: FontWeight.bold,
+            color: active ? Colors.black : Colors.grey,
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _buildSubmitButton() {
     final canSubmit = _selectedAction != null;
     return ElevatedButton(
@@ -579,6 +734,9 @@ class _PlayEntryFormState extends State<PlayEntryForm> {
               if (_selectedAction == 'PASE' && _selectedPassOutcome != null) {
                 outcome = 'PASE $_selectedPassOutcome';
               }
+              if (_selectedAction == 'FALTA' && _foulType != null) {
+                outcome = 'FALTA: $_foulType';
+              }
 
               final playerIds = <String>[];
               if (_selectedPlayerId != null) {
@@ -588,6 +746,20 @@ class _PlayEntryFormState extends State<PlayEntryForm> {
                 playerIds.add(_selectedPlayer2Id!);
               }
 
+              final opponentPlayerIds = <String>[];
+              bool isRivalScoring = false;
+
+              if (_selectedOpponentPlayerId != null &&
+                  _selectedOpponentPlayerId != 'opponent_default') {
+                opponentPlayerIds.add(_selectedOpponentPlayerId!);
+                // If a rival player is selected, points go to them
+                isRivalScoring = true;
+              }
+
+              final scoringTeamId = points > 0
+                  ? (isRivalScoring ? widget.opponentTeamId : null)
+                  : null;
+
               widget.onPlayAdded(
                 _selectedAction!,
                 outcome,
@@ -596,6 +768,12 @@ class _PlayEntryFormState extends State<PlayEntryForm> {
                 _minute,
                 _selectedDown,
                 playerIds,
+                opponentPlayerIds,
+                scoringTeamId,
+                _foulType,
+                _isLossOfDown,
+                _isAutomaticFirstDown,
+                _penalizingTeamId,
               );
               final playDescription = points > 0
                   ? '$outcome (+ $points PTS)'
@@ -611,8 +789,8 @@ class _PlayEntryFormState extends State<PlayEntryForm> {
       style: ElevatedButton.styleFrom(
         padding: const EdgeInsets.symmetric(vertical: 20),
         backgroundColor: widget.phase == PlayPhase.ataque
-            ? AppColors.primaryBlue
-            : AppColors.accentRed,
+            ? AppColors.offensivePurple
+            : AppColors.defensiveGreen,
         disabledBackgroundColor: Colors.white10,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       ),

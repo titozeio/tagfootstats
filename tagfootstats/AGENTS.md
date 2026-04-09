@@ -43,3 +43,8 @@ If a code change is requested or necessary:
 ### 4. Responsive & Platform Design
 - **Adaptive Layouts**: Use `LayoutBuilder`, `adaptive` constructors, or screen-size breakpoints.
 - **Target**: Android (Primary), Desktop/Web (Secondary).
+
+### 5. Memory Management
+- **Long term memory**: Use this document as the long term memory for all agents. When prompted with any important information that should endure(changes in the behaviour of the agents, the user, the project, etc), update this document. 
+- **Pattern**: If the user is repeatedly asking for some thing in the same way, it means that it is his way of doing that kind of thing, so it should be added to this document. 
+- **Context**: The user is the owner of the project and the final decision maker. The agents are here to help and provide the best possible solutions, but the user has the final say.

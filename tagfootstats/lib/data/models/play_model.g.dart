@@ -21,6 +21,17 @@ PlayModel _$PlayModelFromJson(Map<String, dynamic> json) => PlayModel(
           ?.map((e) => e as String)
           .toList() ??
       const [],
+  opponentInvolvedPlayerIds:
+      (json['opponentInvolvedPlayerIds'] as List<dynamic>?)
+          ?.map((e) => e as String)
+          .toList() ??
+      const [],
+  scoringTeamId: json['scoringTeamId'] as String?,
+  foulType: json['foulType'] as String?,
+  isLossOfDown: json['isLossOfDown'] as bool? ?? false,
+  isAutomaticFirstDown: json['isAutomaticFirstDown'] as bool? ?? false,
+  penalizingTeamId: json['penalizingTeamId'] as String?,
+  penalizedPlayerId: json['penalizedPlayerId'] as String?,
 );
 
 Map<String, dynamic> _$PlayModelToJson(PlayModel instance) => <String, dynamic>{
@@ -34,6 +45,13 @@ Map<String, dynamic> _$PlayModelToJson(PlayModel instance) => <String, dynamic>{
   'yardas': instance.yardas,
   'down': instance.down,
   'involvedPlayerIds': instance.involvedPlayerIds,
+  'opponentInvolvedPlayerIds': instance.opponentInvolvedPlayerIds,
+  'scoringTeamId': instance.scoringTeamId,
+  'foulType': instance.foulType,
+  'isLossOfDown': instance.isLossOfDown,
+  'isAutomaticFirstDown': instance.isAutomaticFirstDown,
+  'penalizingTeamId': instance.penalizingTeamId,
+  'penalizedPlayerId': instance.penalizedPlayerId,
 };
 
 const _$PlayPhaseEnumMap = {

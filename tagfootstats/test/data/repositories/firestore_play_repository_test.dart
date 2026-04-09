@@ -1,9 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
-import 'package:tagfootstats/data/models/play_model.dart';
 import 'package:tagfootstats/data/repositories/firestore_play_repository.dart';
-import 'package:tagfootstats/domain/entities/play.dart';
 
 class MockFirebaseFirestore extends Mock implements FirebaseFirestore {}
 
@@ -44,52 +42,49 @@ void main() {
     when(() => mockCollection.doc(any())).thenReturn(mockDocument);
   });
 
-  final tPlay = Play(
-    id: '1',
-    matchId: 'm1',
-    phase: PlayPhase.ataque,
-    minute: 5,
-    action: 'Pass',
-    outcome: 'Complete',
-    points: 0,
-    yardas: 10,
-    involvedPlayerIds: const ['p1'],
-  );
-
-  final tPlayModel = PlayModel.fromEntity(tPlay);
-
   group('getPlaysByMatch', () {
     test(
       'should return plays for a specific match ordered by minute',
       () async {
-        final mockQuery1 = MockCollectionReference();
-        final mockQuery2 = MockCollectionReference();
+        final secondPlaySnapshot = MockQueryDocumentSnapshot();
 
         when(
           () => mockCollection.where('matchId', isEqualTo: 'm1'),
-        ).thenReturn(mockQuery1);
+        ).thenReturn(mockCollection);
         when(
-          () => mockQuery1.orderBy('minute', descending: false),
-        ).thenReturn(mockQuery2);
-        when(() => mockQuery2.get()).thenAnswer((_) async => mockQuerySnapshot);
+          () => mockCollection.get(),
+        ).thenAnswer((_) async => mockQuerySnapshot);
         when(
           () => mockQuerySnapshot.docs,
-        ).thenReturn([mockQueryDocumentSnapshot]);
+        ).thenReturn([mockQueryDocumentSnapshot, secondPlaySnapshot]);
         when(() => mockQueryDocumentSnapshot.id).thenReturn('1');
         when(() => mockQueryDocumentSnapshot.data()).thenReturn({
           'matchId': 'm1',
           'phase': 'ataque',
-          'minute': 5,
+          'minute': 9,
           'action': 'Pass',
           'outcome': 'Complete',
           'points': 0,
           'yardas': 10,
           'involvedPlayerIds': ['p1'],
         });
+        when(() => secondPlaySnapshot.id).thenReturn('2');
+        when(() => secondPlaySnapshot.data()).thenReturn({
+          'matchId': 'm1',
+          'phase': 'ataque',
+          'minute': 5,
+          'action': 'Run',
+          'outcome': 'Success',
+          'points': 0,
+          'yardas': 4,
+          'involvedPlayerIds': ['p2'],
+        });
 
         final result = await repository.getPlaysByMatch('m1');
 
-        expect(result, [tPlayModel]);
+        expect(result.map((play) => play.minute).toList(), [5, 9]);
+        expect(result.first.id, '2');
+        expect(result.last.id, '1');
       },
     );
   });

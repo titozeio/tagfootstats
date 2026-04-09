@@ -23,6 +23,12 @@ class MatchBloc extends Bloc<MatchEvent, MatchState> {
   StreamSubscription? _matchSubscription;
   StreamSubscription? _playsSubscription;
 
+  Match? _currentMatch;
+  List<Play> _currentPlays = const [];
+  List<Player> _players = const [];
+  List<Player> _opponentPlayers = const [];
+  String _opponentTeamName = '';
+
   MatchBloc({
     required this.matchRepository,
     required this.playRepository,
@@ -41,75 +47,115 @@ class MatchBloc extends Bloc<MatchEvent, MatchState> {
     await _playsSubscription?.cancel();
 
     try {
-      // 1. Fetch Roster (Home Team) - with 10s timeout
+      // 1. Fetch Roster (Our Team)
       final ownTeam = await teamRepository.getOwnTeam().timeout(
         const Duration(seconds: 10),
       );
 
-      List<Player> players = [];
       if (ownTeam != null) {
-        players = await playerRepository
+        _players = await playerRepository
             .getPlayersByTeam(ownTeam.id)
             .timeout(const Duration(seconds: 10));
       }
 
-      // 2. Listen for real-time updates of match and plays
+      // 2. Listen for match updates
       _matchSubscription = matchRepository
           .watchMatch(event.matchId)
           .listen(
-            (match) {
+            (match) async {
               if (match == null) {
-                // If match is null, we still emit so the UI can show "Match not found" instead of a spinner
-                add(MatchUpdatedEvent(null, const [], players: players));
+                add(
+                  MatchUpdatedEvent(
+                    null,
+                    _currentPlays,
+                    players: _players,
+                    opponentPlayers: _opponentPlayers,
+                    opponentTeamName: _opponentTeamName,
+                  ),
+                );
                 return;
               }
 
-              // When we have the match, we start listening for plays if not already
-              _playsSubscription ??= playRepository
-                  .watchPlaysByMatch(event.matchId)
-                  .listen(
-                    (plays) {
-                      add(MatchUpdatedEvent(match, plays, players: players));
-                    },
-                    onError: (e) {
-                      add(MatchUpdatedEvent(match, const [], players: players));
-                    },
-                  );
+              _currentMatch = match;
+
+              // 3. Load opponent name and roster if match opponentId changed or not loaded
+              bool needsRosterUpdate =
+                  _opponentPlayers.isEmpty ||
+                  (_opponentPlayers.isNotEmpty &&
+                      _opponentPlayers.first.teamId != match.opponentId);
+
+              if (needsRosterUpdate || _opponentTeamName.isEmpty) {
+                try {
+                  // Fetch Team name first
+                  final opponentTeam = await teamRepository
+                      .getTeamById(match.opponentId)
+                      .timeout(const Duration(seconds: 3));
+                  if (opponentTeam != null) {
+                    _opponentTeamName = opponentTeam.name;
+                  } else {
+                    // Fallback to the ID itself if team not found (for legacy support)
+                    _opponentTeamName = match.opponentId;
+                  }
+
+                  // Fetch Roster
+                  _opponentPlayers = await playerRepository
+                      .getPlayersByTeam(match.opponentId)
+                      .timeout(const Duration(seconds: 5));
+                } catch (_) {
+                  // If fetch fails, keep current name if it's the same ID
+                  if (_opponentTeamName.isEmpty) {
+                    _opponentTeamName = match.opponentId;
+                  }
+                }
+              }
+
+              _emitUpdate();
             },
             onError: (e) {
-              add(MatchUpdatedEvent(null, const [], players: players));
+              add(
+                MatchUpdatedEvent(
+                  null,
+                  _currentPlays,
+                  players: _players,
+                  opponentTeamName: _opponentTeamName,
+                ),
+              );
+            },
+          );
+
+      // 4. Listen for plays updates
+      _playsSubscription = playRepository
+          .watchPlaysByMatch(event.matchId)
+          .listen(
+            (plays) {
+              _currentPlays = plays;
+              _emitUpdate();
+            },
+            onError: (e) {
+              _emitUpdate();
             },
           );
     } catch (e) {
-      // If roster fails, we still want to show the match
-      _matchSubscription = matchRepository
-          .watchMatch(event.matchId)
-          .listen(
-            (match) {
-              add(MatchUpdatedEvent(match, const [], players: const []));
-            },
-            onError: (err) {
-              add(MatchUpdatedEvent(null, const [], players: const []));
-            },
-          );
+      emit(MatchError('Error loading match: $e'));
+    }
+  }
+
+  void _emitUpdate() {
+    if (_currentMatch != null) {
+      add(
+        MatchUpdatedEvent(
+          _currentMatch,
+          _currentPlays,
+          players: _players,
+          opponentPlayers: _opponentPlayers,
+          opponentTeamName: _opponentTeamName,
+        ),
+      );
     }
   }
 
   Future<void> _onAddPlay(AddPlayEvent event, Emitter<MatchState> emit) async {
     try {
-      // 1. Calculate points based on common flag football rules if not provided
-      int points = event.play.points;
-      if (points == 0) {
-        if (event.play.outcome.toLowerCase().contains('touchdown')) points = 6;
-        if (event.play.outcome.toLowerCase().contains('extra point 1')) {
-          points = 1;
-        }
-        if (event.play.outcome.toLowerCase().contains('extra point 2')) {
-          points = 2;
-        }
-        if (event.play.outcome.toLowerCase().contains('safety')) points = 2;
-      }
-
       await addPlayToMatch(event.play);
     } catch (e) {
       emit(MatchError('Failed to add play: $e'));
@@ -125,6 +171,8 @@ class MatchBloc extends Bloc<MatchEvent, MatchState> {
           match: event.match!,
           plays: event.plays,
           players: event.players,
+          opponentPlayers: event.opponentPlayers,
+          opponentTeamName: event.opponentTeamName,
         ),
       );
     }

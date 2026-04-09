@@ -15,19 +15,32 @@ class AddPlayToMatch {
 
     // 2. Fetch the current match state
     final match = await matchRepository.getMatchById(play.matchId);
-    if (match == null) return;
+    if (match == null || play.points == 0) return;
 
-    // 3. Calculate new score (Simple logic for now, can be expanded)
-    // Points are already included in the Play entity from the UI/Bloc logic
+    // 3. Calculate new score
     int newHomeScore = match.homeScore;
     int newAwayScore = match.awayScore;
 
-    // Optimization: In a real app, we'd check which team performed the action.
-    // For now, we'll assume the 'points' field in Play is for the 'Home' team (the user's team)
-    // unless specified otherwise.
-    // TODO: Implement more robust score logic based on 'isOwnTeam' and phase.
+    // Determine if the points are for the user's team or the opponent
+    // scoringTeamId == match.opponentId means it's for the opponent
+    final forOpponent = play.scoringTeamId == match.opponentId;
 
-    newHomeScore += play.points;
+    // Determine which score to update based on locationType
+    if (match.locationType == LocationType.local) {
+      // Us (Local) vs Opponent (Away)
+      if (forOpponent) {
+        newAwayScore += play.points;
+      } else {
+        newHomeScore += play.points;
+      }
+    } else {
+      // Opponent (Local) vs Us (Away)
+      if (forOpponent) {
+        newHomeScore += play.points;
+      } else {
+        newAwayScore += play.points;
+      }
+    }
 
     final updatedMatch = Match(
       id: match.id,

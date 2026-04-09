@@ -123,3 +123,17 @@
 - [x] Final UI Polish (Animations & Feedback)
 - [x] Production Build & Deployment
 - [x] Beta Release (Android APK)
+
+## Phase 10: Post-Launch Features & Polish [x]
+
+- [x] Add "Faltas" (Fouls) to the match recording plays. First, research how fouls work in Flag/Tag Football (e.g., penalty yards, loss of down) to implement them accurately.
+- [x] Implement a modern, visually stunning post-match statistics report/view (similar to basketball box scores but cooler). Include an option to export/copy the stats to a plain text format.
+
+## Phase 11: Areglando el desastre provocado por la IA [x]
+
+ - [x] Arreglar el estropicio de que en lugar del nombre del oponente salga "Opp_1", "Opp2_".  
+ - [x] Que se puedan eliminar partidos 
+ - [x] En la home, si no hay ningún partido, que no aparezca ninguno. Ahora mismo aparece uno que no existe del equipo del usuario sin rival, sin jugadas... NO! Que no salga nada si no hay partido. 
+ - [x] En la sección de estadísticas tampoco muestra el nombre de los rivales, aparece también "Opo_1", etc. 
+ - [x] En la sección de estadísticas no se registran bien las estadísticas. Le está asiganando todas las  jugadas al equipo del usuario. 
+ - [x] En la sección de estadísticas no se muestran todas las estadísticas. Debería mostrar para cada equipo todas las posibles jugadas que se pueden registrar durante un partido (pases, carreras, sacks, fumbles, faltas, touchdowns, no pat, 1pt, 2pt,  flag quitado, intercepción, batted, safety, falta,... todas, vaya). Y que las muestre bien. Tanto para cada equipo, como para cada jugador. Ahora mismo no hace nada bien.

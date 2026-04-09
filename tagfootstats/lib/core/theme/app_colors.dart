@@ -9,6 +9,12 @@ class AppColors {
   // NFL Red
   static const Color accentRed = Color(0xFFD50A0A);
 
+  // Play Phases
+  static const Color offensivePurple = Color(
+    0xFF4B2391,
+  ); // Vikings/Ravens Purple
+  static const Color defensiveGreen = Color(0xFF006747); // Eagles/Jets Green
+
   // Backgrounds
   static const Color darkBackground = Color(0xFF121212);
   static const Color surfaceDark = Color(0xFF1E1E1E);

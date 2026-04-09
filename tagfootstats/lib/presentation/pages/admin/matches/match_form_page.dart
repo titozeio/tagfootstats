@@ -36,8 +36,9 @@ class _MatchFormPageState extends State<MatchFormPage> {
   List<Tournament> _allTournaments = [];
   Tournament? _selectedTournament;
   bool _isAddingNewTeam = false;
-  String _selectedPhase = 'Final';
+  String? _selectedPhase = 'Final';
   bool _isCustomPhase = false;
+  String? _selectedOpponentTeamId;
 
   @override
   void initState() {
@@ -53,10 +54,11 @@ class _MatchFormPageState extends State<MatchFormPage> {
       _locationType = widget.match!.locationType;
       _selectedDate = widget.match!.dateTime;
       _selectedTime = TimeOfDay.fromDateTime(widget.match!.dateTime);
+      _selectedOpponentTeamId = widget.match!.opponentId;
     } else if (widget.tournamentId != null) {
       _selectedTournamentId = widget.tournamentId;
     }
-    _phaseController.text = _selectedPhase;
+    _phaseController.text = _selectedPhase ?? '';
 
     _loadInitialData();
   }
@@ -131,6 +133,7 @@ class _MatchFormPageState extends State<MatchFormPage> {
       );
 
       String opponentName = _opponentController.text.trim();
+      String finalOpponentId = _selectedOpponentTeamId ?? opponentName;
 
       if (_isAddingNewTeam && opponentName.isNotEmpty) {
         final newTeamId = DateTime.now().millisecondsSinceEpoch.toString();
@@ -141,6 +144,7 @@ class _MatchFormPageState extends State<MatchFormPage> {
           isOwnTeam: false,
         );
         await teamRepo.saveTeam(newTeam);
+        finalOpponentId = newTeamId;
       }
 
       final match = entity.Match(
@@ -148,7 +152,7 @@ class _MatchFormPageState extends State<MatchFormPage> {
             widget.match?.id ??
             DateTime.now().millisecondsSinceEpoch.toString(),
         tournamentId: _selectedTournamentId!,
-        opponentId: opponentName,
+        opponentId: finalOpponentId,
         dateTime: finalDateTime,
         locationType: _locationType,
         matchday: (_selectedTournament?.type == TournamentType.liga)
@@ -240,18 +244,14 @@ class _MatchFormPageState extends State<MatchFormPage> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         DropdownButtonFormField<String>(
-          initialValue: _isAddingNewTeam
-              ? 'NEW'
-              : (_opponentController.text.isEmpty
-                    ? null
-                    : _opponentController.text),
+          initialValue: _isAddingNewTeam ? 'NEW' : _selectedOpponentTeamId,
           decoration: const InputDecoration(
             labelText: 'EQUIPO OPONENTE',
             prefixIcon: Icon(Icons.shield),
           ),
           items: [
             ...teams.map(
-              (t) => DropdownMenuItem(value: t.name, child: Text(t.name)),
+              (t) => DropdownMenuItem(value: t.id, child: Text(t.name)),
             ),
             const DropdownMenuItem(
               value: 'NEW',
@@ -265,10 +265,14 @@ class _MatchFormPageState extends State<MatchFormPage> {
             setState(() {
               if (val == 'NEW') {
                 _isAddingNewTeam = true;
+                _selectedOpponentTeamId = null;
                 _opponentController.clear();
               } else {
                 _isAddingNewTeam = false;
-                _opponentController.text = val ?? '';
+                _selectedOpponentTeamId = val;
+                // We keep the name in the controller just for validation or custom display
+                final team = teams.firstWhere((t) => t.id == val);
+                _opponentController.text = team.name;
               }
             });
           },

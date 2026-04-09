@@ -63,6 +63,10 @@ Statistics are recorded in real-time or post-match. The interface updates the sc
 |                 | Carrera      | Completo          | +1 or +2 pts                     |
 |                 |              | Fallido           | -                                |
 
+## 6. Detailed Feature Specs
+- [Faltas (Fouls) System](file:///d:/projects/tagfootstats/tagfootstats/docs/specs/faltas_spec.md)
+- [Post-Match Statistics (Box Score)](file:///d:/projects/tagfootstats/tagfootstats/docs/specs/post_match_stats_spec.md)
+
 ## 4. UI/UX Requirements
 - **Real-time Scoreboard**: Visible at all times during match recording.
 - **Dynamic Clock**: Updates based on the last recorded play's timestamp.
@@ -73,3 +77,9 @@ Statistics are recorded in real-time or post-match. The interface updates the sc
 ## 5. Non-Functional Requirements
 - **Offline Support**: (Optional but recommended) Ability to record stats without internet, syncing later to Firebase.
 - **Accessibility**: Clear typography and high-contrast elements for quick reading during game action.
+
+## 7. Advanced Stats & Match Management
+- Advanced season statistics must aggregate data by the actual team and player involved in each play, not by assuming every play belongs to the user's team.
+- Opponent team identifiers must always be resolved to readable team names when that data exists in storage.
+- Team statistics must expose all supported recorded play types, including passing, rushing, sacks, fumbles, fouls, touchdowns, PAT 0/1/2, flag pulls, interceptions, batted passes, and safeties.
+- Match management views must allow deleting a match with confirmation, and the deletion must also remove the related recorded plays.

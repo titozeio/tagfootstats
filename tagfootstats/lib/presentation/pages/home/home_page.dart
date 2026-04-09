@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:tagfootstats/core/theme/app_colors.dart';
+import 'package:tagfootstats/core/utils/team_reference_utils.dart';
 import 'package:tagfootstats/domain/repositories/match_repository.dart';
+import 'package:tagfootstats/domain/repositories/team_repository.dart';
 import 'package:tagfootstats/domain/entities/match.dart' as entity;
 import '../../bloc/app/app_bloc.dart';
 import '../../widgets/match_summary_card.dart';
@@ -89,12 +91,17 @@ class HomePage extends StatelessWidget {
   }
 
   Widget _buildTeamStats(BuildContext context, AppReady state) {
-    return FutureBuilder<List<entity.Match>>(
-      future: context.read<MatchRepository>().getMatches(),
+    return FutureBuilder<List<dynamic>>(
+      future: Future.wait([
+        context.read<MatchRepository>().getMatches(),
+        context.read<TeamRepository>().getTeams(),
+      ]),
       builder: (context, snapshot) {
         if (!snapshot.hasData) return const SizedBox.shrink();
 
-        final matches = snapshot.data!;
+        final matches = (snapshot.data![0] as List<entity.Match>)
+            .where((match) => hasValidOpponentReference(match.opponentId))
+            .toList();
         int wins = 0;
         int losses = 0;
         int pointsFor = 0;
@@ -212,14 +219,30 @@ class HomePage extends StatelessWidget {
   }
 
   Widget _buildLastMatchResult(BuildContext context, AppReady state) {
-    return FutureBuilder<List<entity.Match>>(
-      future: context.read<MatchRepository>().getMatches(),
+    return FutureBuilder<List<dynamic>>(
+      future: Future.wait([
+        context.read<MatchRepository>().getMatches(),
+        context.read<TeamRepository>().getTeams(),
+      ]),
       builder: (context, snapshot) {
-        if (!snapshot.hasData || snapshot.data!.isEmpty) {
+        if (!snapshot.hasData) {
           return const SizedBox.shrink();
         }
 
-        final lastMatch = snapshot.data!.last;
+        final matches =
+            (snapshot.data![0] as List<entity.Match>)
+                .where((match) => hasValidOpponentReference(match.opponentId))
+                .toList()
+              ..sort((a, b) => a.dateTime.compareTo(b.dateTime));
+        if (matches.isEmpty) {
+          return const SizedBox.shrink();
+        }
+
+        final teams = snapshot.data![1] as List<dynamic>;
+        final teamNames = {
+          for (final team in teams) team.id as String: team.name as String,
+        };
+        final lastMatch = matches.last;
 
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -232,7 +255,11 @@ class HomePage extends StatelessWidget {
             InkWell(
               onTap: () => context.push('/match/${lastMatch.id}'),
               borderRadius: BorderRadius.circular(12),
-              child: MatchSummaryCard(match: lastMatch, ownTeam: state.ownTeam),
+              child: MatchSummaryCard(
+                match: lastMatch,
+                ownTeam: state.ownTeam,
+                opponentName: resolveTeamName(lastMatch.opponentId, teamNames),
+              ),
             ),
           ],
         );

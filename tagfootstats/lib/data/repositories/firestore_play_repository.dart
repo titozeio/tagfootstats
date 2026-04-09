@@ -15,11 +15,16 @@ class FirestorePlayRepository implements PlayRepository {
     final snapshot = await _firestore
         .collection(_collectionPath)
         .where('matchId', isEqualTo: matchId)
-        .orderBy('minute', descending: false)
         .get();
-    return snapshot.docs
+
+    final plays = snapshot.docs
         .map((doc) => PlayModel.fromJson({...doc.data(), 'id': doc.id}))
         .toList();
+
+    // Sort in memory to avoid needing a composite index in Firestore
+    plays.sort((a, b) => a.minute.compareTo(b.minute));
+
+    return plays;
   }
 
   @override

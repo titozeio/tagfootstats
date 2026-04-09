@@ -16,6 +16,13 @@ class PlayModel extends Play {
     super.yardas = 0,
     super.down,
     super.involvedPlayerIds = const [],
+    super.opponentInvolvedPlayerIds = const [],
+    super.scoringTeamId,
+    super.foulType,
+    super.isLossOfDown = false,
+    super.isAutomaticFirstDown = false,
+    super.penalizingTeamId,
+    super.penalizedPlayerId,
   });
 
   factory PlayModel.fromJson(Map<String, dynamic> json) =>
@@ -35,6 +42,13 @@ class PlayModel extends Play {
       yardas: entity.yardas,
       down: entity.down,
       involvedPlayerIds: entity.involvedPlayerIds,
+      opponentInvolvedPlayerIds: entity.opponentInvolvedPlayerIds,
+      scoringTeamId: entity.scoringTeamId,
+      foulType: entity.foulType,
+      isLossOfDown: entity.isLossOfDown,
+      isAutomaticFirstDown: entity.isAutomaticFirstDown,
+      penalizingTeamId: entity.penalizingTeamId,
+      penalizedPlayerId: entity.penalizedPlayerId,
     );
   }
 }

@@ -15,15 +15,25 @@ class MatchLoaded extends MatchState {
   final Match match;
   final List<Play> plays;
   final List<Player> players;
+  final List<Player> opponentPlayers;
+  final String opponentTeamName;
 
   const MatchLoaded({
     required this.match,
     required this.plays,
     this.players = const [],
+    this.opponentPlayers = const [],
+    required this.opponentTeamName,
   });
 
   @override
-  List<Object?> get props => [match, plays, players];
+  List<Object?> get props => [
+    match,
+    plays,
+    players,
+    opponentPlayers,
+    opponentTeamName,
+  ];
 }
 
 class MatchError extends MatchState {
