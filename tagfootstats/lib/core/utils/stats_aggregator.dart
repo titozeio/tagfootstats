@@ -17,7 +17,10 @@ class TeamStatsAggregate {
   int pointsFor = 0;
   int pointsAgainst = 0;
   int totalYards = 0;
-  int passes = 0;
+  // Pass breakdown (COM / INC / INT)
+  int passesComplete = 0;
+  int passesIncomplete = 0;
+  int passesIntercepted = 0;
   int runs = 0;
   int sacks = 0;
   int sacksReceived = 0;
@@ -31,6 +34,11 @@ class TeamStatsAggregate {
   int interceptions = 0;
   int batted = 0;
   int safeties = 0;
+  int maxAdvances = 0;
+  int missedFlags = 0;
+
+  /// Total passes registered (complete + incomplete + intercepted).
+  int get passes => passesComplete + passesIncomplete + passesIntercepted;
 
   TeamStatsAggregate({required this.teamRef, required this.teamName});
 }
@@ -44,7 +52,10 @@ class PlayerStatsAggregate {
   final String? photoUrl;
   int points = 0;
   int yards = 0;
-  int passes = 0;
+  // Pass breakdown (COM / INC / INT)
+  int passesComplete = 0;
+  int passesIncomplete = 0;
+  int passesIntercepted = 0;
   int runs = 0;
   int sacks = 0;
   int fumbles = 0;
@@ -56,6 +67,11 @@ class PlayerStatsAggregate {
   int interceptions = 0;
   int batted = 0;
   int safeties = 0;
+  int maxAdvances = 0;
+  int missedFlags = 0;
+
+  /// Total passes registered (complete + incomplete + intercepted).
+  int get passes => passesComplete + passesIncomplete + passesIntercepted;
 
   PlayerStatsAggregate({
     required this.playerId,
@@ -145,77 +161,110 @@ AggregatedStats aggregateStats({
       match.opponentId,
       teamNamesById,
     );
-    final offenseTeamRef = _resolveOffenseTeamRef(
-      play: play,
-      ownTeamId: ownTeamId,
-      opponentTeamRef: opponentRef,
-    );
-    final defenseTeamRef = offenseTeamRef == ownTeamId
-        ? opponentRef
-        : ownTeamId;
-    final offenseStats = ensureTeam(offenseTeamRef);
-    final defenseStats = ensureTeam(defenseTeamRef);
 
-    offenseStats.totalYards += play.yardas;
+    // ── NEW MODEL: all plays are from the user's team perspective ──────────
+    // phase=ataque  → our team is executing an offensive play
+    // phase=defensa → our team is executing a defensive play
+    // The opponent only ever shows up in stats when their points (scoringTeamId)
+    // or their actions are derived from our defensive plays.
+    final ownStats = ensureTeam(ownTeamId);
+    final opponentStats = ensureTeam(opponentRef);
+
+    // Yardas: always count on the user's team (our yards gained/lost).
+    ownStats.totalYards += play.yardas;
+
+    final outcomeUpper = play.outcome.toUpperCase();
 
     switch (play.action) {
       case 'PASE':
-        offenseStats.passes++;
-        if (play.outcome.toUpperCase().contains('INTERCEPTADO')) {
-          defenseStats.interceptions++;
+        // Determine pass result from outcome string
+        if (outcomeUpper.contains('INTERCEPTADO')) {
+          ownStats.passesIntercepted++;
+          // The interception is a defensive gain: credit to opponent IF they
+          // intercepted (i.e. rival picked our pass). This is an ataque play.
+          opponentStats.interceptions++;
+        } else if (outcomeUpper.contains('INCOMPLETO')) {
+          ownStats.passesIncomplete++;
+        } else {
+          // COMPLETO (default for any other outcome during a pase)
+          ownStats.passesComplete++;
         }
         break;
+
       case 'CARRERA':
-        offenseStats.runs++;
+        ownStats.runs++;
         break;
+
       case 'SACK':
-        defenseStats.sacks++;
-        offenseStats.sacksReceived++;
+        if (play.phase == PlayPhase.ataque) {
+          // We got sacked (offensive play gone wrong)
+          ownStats.sacksReceived++;
+          opponentStats.sacks++;
+        } else {
+          // We sacked the rival QB (defensive play)
+          ownStats.sacks++;
+          opponentStats.sacksReceived++;
+        }
         break;
+
       case 'FUMBLE':
-        offenseStats.fumbles++;
+        ownStats.fumbles++;
         break;
+
       case 'FALTA':
         ensureTeam(
           _resolvePenalizingTeamRef(
             play: play,
             ownTeamId: ownTeamId,
             opponentTeamRef: opponentRef,
-            fallbackRef: offenseTeamRef,
+            fallbackRef: ownTeamId,
           ),
         ).fouls++;
         break;
+
       case 'FLAG QUITADO':
-        defenseStats.flagPulls++;
+        // Our defense pulled the flag
+        ownStats.flagPulls++;
         break;
+
       case 'INTERCEPCIÓN':
-        defenseStats.interceptions++;
+        // Our defense intercepted a rival pass
+        ownStats.interceptions++;
         break;
+
       case 'BATTED':
-        defenseStats.batted++;
+        // Our defense batted a pass
+        ownStats.batted++;
         break;
+
       case 'SAFETY':
-        ensureTeam(
-          _resolveScoringTeamRef(
-            play: play,
-            ownTeamId: ownTeamId,
-            opponentTeamRef: opponentRef,
-            defaultRef: defenseTeamRef,
-          ),
-        ).safeties++;
+        // Our defense caused a safety → we score 2 pts (handled below in scoring)
+        ownStats.safeties++;
+        break;
+
+      case 'AVANCE MÁXIMO':
+        // Rival reached max advance — defensive stat vs. rival
+        ownStats.maxAdvances++;
+        break;
+
+      case 'FLAG FALLIDO':
+        // We missed a flag pull
+        ownStats.missedFlags++;
         break;
     }
 
+    // Extra point: no PAT
     if (play.phase == PlayPhase.extraPoint && play.points == 0) {
-      offenseStats.noPat++;
+      ownStats.noPat++;
     }
 
+    // Points scored
     if (play.points > 0) {
       final scoringTeamRef = _resolveScoringTeamRef(
         play: play,
         ownTeamId: ownTeamId,
         opponentTeamRef: opponentRef,
-        defaultRef: play.action == 'SAFETY' ? defenseTeamRef : offenseTeamRef,
+        defaultRef: ownTeamId,
       );
       final scoringStats = ensureTeam(scoringTeamRef);
       if (play.action != 'SAFETY' && play.points >= 6) {
@@ -229,12 +278,11 @@ AggregatedStats aggregateStats({
 
     _applyPlayerStats(
       play: play,
-      offenseTeamRef: offenseTeamRef,
-      defenseTeamRef: defenseTeamRef,
       ownTeamId: ownTeamId,
       opponentTeamRef: opponentRef,
       playerById: playerById,
       ensurePlayer: ensurePlayer,
+      teamNamesById: teamNamesById,
     );
   }
 
@@ -262,27 +310,6 @@ AggregatedStats aggregateStats({
         });
 
   return AggregatedStats(teamStats: orderedTeams, playerStats: orderedPlayers);
-}
-
-String _resolveOffenseTeamRef({
-  required Play play,
-  required String ownTeamId,
-  required String opponentTeamRef,
-}) {
-  if (play.phase == PlayPhase.ataque) {
-    return ownTeamId;
-  }
-  if (play.phase == PlayPhase.defensa) {
-    return opponentTeamRef;
-  }
-  if (play.scoringTeamId == opponentTeamRef) {
-    return opponentTeamRef;
-  }
-  if (play.opponentInvolvedPlayerIds.isNotEmpty &&
-      play.involvedPlayerIds.isEmpty) {
-    return opponentTeamRef;
-  }
-  return ownTeamId;
 }
 
 String _resolveScoringTeamRef({
@@ -325,37 +352,36 @@ String _resolvePenalizingTeamRef({
 
 void _applyPlayerStats({
   required Play play,
-  required String offenseTeamRef,
-  required String defenseTeamRef,
   required String ownTeamId,
   required String opponentTeamRef,
   required Map<String, Player> playerById,
   required PlayerStatsAggregate Function(Player player, String teamRef)
   ensurePlayer,
+  required Map<String, String> teamNamesById,
 }) {
-  void applyToPlayer({
-    required String playerId,
-    required String teamRef,
-    required bool isOnOffense,
-  }) {
+  // Under the new model, involvedPlayerIds contains user team players only.
+  // opponentInvolvedPlayerIds is no longer used in recording but may exist
+  // in legacy data — we still process it for backward compatibility.
+
+  final outcomeUpper = play.outcome.toUpperCase();
+
+  void applyToOwnPlayer(String playerId) {
     final player = playerById[playerId];
-    if (player == null) {
-      return;
-    }
-    final stats = ensurePlayer(player, teamRef);
+    if (player == null) return;
+    final stats = ensurePlayer(player, ownTeamId);
 
-    if (isOnOffense) {
-      stats.yards += play.yardas;
-    }
+    // Yardas always go to the player who executed the play
+    stats.yards += play.yardas;
 
+    // Points: whoever's scoringTeamId matches
     if (play.points > 0) {
       final scoringTeamRef = _resolveScoringTeamRef(
         play: play,
         ownTeamId: ownTeamId,
         opponentTeamRef: opponentTeamRef,
-        defaultRef: play.action == 'SAFETY' ? defenseTeamRef : offenseTeamRef,
+        defaultRef: ownTeamId,
       );
-      if (scoringTeamRef == teamRef) {
+      if (scoringTeamRef == ownTeamId) {
         stats.points += play.points;
         if (play.action != 'SAFETY' && play.points >= 6) {
           stats.touchdowns++;
@@ -369,77 +395,70 @@ void _applyPlayerStats({
 
     switch (play.action) {
       case 'PASE':
-        if (isOnOffense) {
-          stats.passes++;
-        } else if (play.outcome.toUpperCase().contains('INTERCEPTADO')) {
-          stats.interceptions++;
+        if (outcomeUpper.contains('INTERCEPTADO')) {
+          stats.passesIntercepted++;
+        } else if (outcomeUpper.contains('INCOMPLETO')) {
+          stats.passesIncomplete++;
+        } else {
+          stats.passesComplete++;
         }
         break;
       case 'CARRERA':
-        if (isOnOffense) {
-          stats.runs++;
-        }
+        stats.runs++;
         break;
       case 'SACK':
-        if (!isOnOffense) {
+        if (play.phase == PlayPhase.ataque) {
+          // We got sacked — nothing to credit the player in offense
+        } else {
           stats.sacks++;
         }
         break;
       case 'FUMBLE':
-        if (isOnOffense) {
-          stats.fumbles++;
-        }
+        stats.fumbles++;
         break;
       case 'FALTA':
         final penalizingTeamRef = _resolvePenalizingTeamRef(
           play: play,
           ownTeamId: ownTeamId,
           opponentTeamRef: opponentTeamRef,
-          fallbackRef: offenseTeamRef,
+          fallbackRef: ownTeamId,
         );
-        if (penalizingTeamRef == teamRef) {
+        if (penalizingTeamRef == ownTeamId) {
           stats.fouls++;
         }
         break;
       case 'FLAG QUITADO':
-        if (!isOnOffense) {
-          stats.flagPulls++;
-        }
+        stats.flagPulls++;
         break;
       case 'INTERCEPCIÓN':
-        if (!isOnOffense) {
-          stats.interceptions++;
-        }
+        stats.interceptions++;
         break;
       case 'BATTED':
-        if (!isOnOffense) {
-          stats.batted++;
-        }
+        stats.batted++;
         break;
       case 'SAFETY':
-        if (!isOnOffense) {
-          stats.safeties++;
-        }
+        stats.safeties++;
+        break;
+      case 'AVANCE MÁXIMO':
+        stats.maxAdvances++;
+        break;
+      case 'FLAG FALLIDO':
+        stats.missedFlags++;
         break;
     }
   }
 
   for (final playerId in play.involvedPlayerIds) {
-    final ownOffense = offenseTeamRef == ownTeamId;
-    applyToPlayer(
-      playerId: playerId,
-      teamRef: ownTeamId,
-      isOnOffense: ownOffense,
-    );
+    applyToOwnPlayer(playerId);
   }
 
+  // Legacy backward-compat: opponent players in old data
+  // We still call ensurePlayer to register them in the player map,
+  // but no stat attribution under the new user-perspective model.
   for (final playerId in play.opponentInvolvedPlayerIds) {
-    final opponentOffense = offenseTeamRef == opponentTeamRef;
-    applyToPlayer(
-      playerId: playerId,
-      teamRef: opponentTeamRef,
-      isOnOffense: opponentOffense,
-    );
+    final player = playerById[playerId];
+    if (player == null) continue;
+    ensurePlayer(player, opponentTeamRef);
   }
 }
 
@@ -457,5 +476,7 @@ bool _playerHasRegisteredStats(PlayerStatsAggregate player) {
       player.flagPulls != 0 ||
       player.interceptions != 0 ||
       player.batted != 0 ||
-      player.safeties != 0;
+      player.safeties != 0 ||
+      player.maxAdvances != 0 ||
+      player.missedFlags != 0;
 }

@@ -4,10 +4,15 @@ import '../../core/utils/feedback_utils.dart';
 import '../../domain/entities/play.dart';
 import '../../domain/entities/player.dart';
 
+/// Form for recording a single play during a match.
+///
+/// All plays are registered from the user's team perspective:
+/// - [PlayPhase.ataque]: user team executes an offensive play (points → user team).
+/// - [PlayPhase.defensa]: user team executes a defensive play. A touchdown
+///   checked here means the **rival** scored (scoringTeamId = opponentTeamId).
 class PlayEntryForm extends StatefulWidget {
   final PlayPhase phase;
   final List<Player> players;
-  final List<Player> opponentPlayers;
   final String opponentTeamId;
   final Function(
     String action,
@@ -33,7 +38,6 @@ class PlayEntryForm extends StatefulWidget {
     super.key,
     required this.phase,
     this.players = const [],
-    this.opponentPlayers = const [],
     required this.opponentTeamId,
     required this.onPlayAdded,
     this.homeScore = 0,
@@ -47,12 +51,12 @@ class PlayEntryForm extends StatefulWidget {
 
 class _PlayEntryFormState extends State<PlayEntryForm> {
   String? _selectedPlayerId;
-  String? _selectedOpponentPlayerId;
   String? _selectedAction;
   int _yards = 0;
   bool _isTouchdown = false;
   int _extraPointValue = 0; // 0, 1, 2
   int _minute = 0;
+  bool _isOt = false;
   int? _selectedDown;
   String? _selectedPassOutcome;
   String? _selectedPlayer2Id;
@@ -77,6 +81,7 @@ class _PlayEntryFormState extends State<PlayEntryForm> {
       _isTouchdown = false;
       _extraPointValue = 0;
       _minute = 0;
+      _isOt = false;
       _selectedDown = null;
       _selectedPassOutcome = null;
       _selectedPlayer2Id = null;
@@ -85,6 +90,14 @@ class _PlayEntryFormState extends State<PlayEntryForm> {
       _isAutomaticFirstDown = false;
       _penalizingTeamId = null;
     });
+  }
+
+  /// Computes the actual minute to store for this play.
+  /// OT plays are stored as 61, 62, 63... based on how many OT plays exist.
+  int _resolveMinute() {
+    if (!_isOt) return _minute;
+    final otCount = widget.recentPlays.where((p) => p.minute >= 61).length;
+    return 61 + otCount;
   }
 
   @override
@@ -160,7 +173,7 @@ class _PlayEntryFormState extends State<PlayEntryForm> {
             child: Row(
               children: [
                 Text(
-                  '${p.minute}\'',
+                  p.minute >= 61 ? 'OT' : '${p.minute}\'',
                   style: const TextStyle(
                     fontWeight: FontWeight.bold,
                     color: AppColors.nflGold,
@@ -322,8 +335,37 @@ class _PlayEntryFormState extends State<PlayEntryForm> {
                 color: Colors.grey,
               ),
             ),
+            // OT toggle
+            GestureDetector(
+              onTap: () => setState(() {
+                _isOt = !_isOt;
+                if (_isOt) _minute = 0; // reset slider cuando se activa OT
+              }),
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 4,
+                ),
+                decoration: BoxDecoration(
+                  color: _isOt ? AppColors.nflGold : Colors.transparent,
+                  borderRadius: BorderRadius.circular(6),
+                  border: Border.all(
+                    color: _isOt ? AppColors.nflGold : AppColors.glassBorder,
+                  ),
+                ),
+                child: Text(
+                  'OT',
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w900,
+                    color: _isOt ? Colors.black : Colors.grey,
+                    letterSpacing: 1,
+                  ),
+                ),
+              ),
+            ),
             Text(
-              'MIN: $_minute',
+              _isOt ? 'OT' : 'MIN: $_minute',
               style: const TextStyle(
                 fontWeight: FontWeight.w900,
                 color: AppColors.nflGold,
@@ -331,16 +373,26 @@ class _PlayEntryFormState extends State<PlayEntryForm> {
             ),
           ],
         ),
-        Slider(
-          value: _minute.toDouble(),
-          min: 0,
-          max: 60,
-          divisions: 60,
-          activeColor: AppColors.nflGold,
-          inactiveColor: Colors.white10,
-          label: _minute.toString(),
-          onChanged: (val) => setState(() => _minute = val.toInt()),
-        ),
+        if (!_isOt)
+          Slider(
+            value: _minute.toDouble(),
+            min: 0,
+            max: 60,
+            divisions: 60,
+            activeColor: AppColors.nflGold,
+            inactiveColor: Colors.white10,
+            label: _minute.toString(),
+            onChanged: (val) => setState(() => _minute = val.toInt()),
+          )
+        else
+          const Padding(
+            padding: EdgeInsets.symmetric(vertical: 12),
+            child: Text(
+              'Jugada en Tiempo Extra (OT)',
+              style: TextStyle(color: Colors.grey, fontSize: 12),
+              textAlign: TextAlign.center,
+            ),
+          ),
       ],
     );
   }
@@ -358,29 +410,13 @@ class _PlayEntryFormState extends State<PlayEntryForm> {
           ),
         ),
         const SizedBox(height: 8),
-        Row(
-          children: [
-            Expanded(
-              child: DropdownButtonFormField<String>(
-                initialValue: _selectedPlayerId,
-                decoration: _inputDecoration(
-                  _selectedAction == 'PASE' ? 'QB' : 'JUGADOR PROPIO',
-                ),
-                items: _playerItems(widget.players),
-                onChanged: (val) => setState(() => _selectedPlayerId = val),
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: DropdownButtonFormField<String>(
-                initialValue: _selectedOpponentPlayerId,
-                decoration: _inputDecoration('JUGADOR RIVAL'),
-                items: _playerItems(widget.opponentPlayers, isOpponent: true),
-                onChanged: (val) =>
-                    setState(() => _selectedOpponentPlayerId = val),
-              ),
-            ),
-          ],
+        DropdownButtonFormField<String>(
+          initialValue: _selectedPlayerId,
+          decoration: _inputDecoration(
+            _selectedAction == 'PASE' ? 'QB' : 'JUGADOR',
+          ),
+          items: _playerItems(widget.players),
+          onChanged: (val) => setState(() => _selectedPlayerId = val),
         ),
         if (_selectedAction == 'PASE') ...[
           const SizedBox(height: 12),
@@ -408,19 +444,7 @@ class _PlayEntryFormState extends State<PlayEntryForm> {
     );
   }
 
-  List<DropdownMenuItem<String>> _playerItems(
-    List<Player> players, {
-    bool isOpponent = false,
-  }) {
-    if (isOpponent && players.isEmpty) {
-      return [
-        const DropdownMenuItem(
-          value: 'opponent_default',
-          child: Text('JUGADOR RIVAL'),
-        ),
-      ];
-    }
-
+  List<DropdownMenuItem<String>> _playerItems(List<Player> players) {
     return players
         .map(
           (p) => DropdownMenuItem(
@@ -434,7 +458,16 @@ class _PlayEntryFormState extends State<PlayEntryForm> {
   Widget _buildActionGrid() {
     final actions = widget.phase == PlayPhase.ataque
         ? ['PASE', 'CARRERA', 'SACK', 'FUMBLE', 'FALTA']
-        : ['FLAG QUITADO', 'SACK', 'INTERCEPCIÓN', 'BATTED', 'SAFETY', 'FALTA'];
+        : [
+            'FLAG QUITADO',
+            'AVANCE MÁXIMO',
+            'FLAG FALLIDO',
+            'SACK',
+            'INTERCEPCIÓN',
+            'BATTED',
+            'SAFETY',
+            'FALTA',
+          ];
 
     return Wrap(
       spacing: 12,
@@ -502,13 +535,14 @@ class _PlayEntryFormState extends State<PlayEntryForm> {
   }
 
   Widget _buildOutcomeToggles() {
+    final isDefense = widget.phase == PlayPhase.defensa;
     return Column(
       children: [
         Row(
           children: [
             Expanded(
               child: _buildToggleButton(
-                'TOUCHDOWN',
+                isDefense ? 'TOUCHDOWN RIVAL' : 'TOUCHDOWN',
                 _isTouchdown,
                 () => setState(() {
                   _isTouchdown = !_isTouchdown;
@@ -719,9 +753,18 @@ class _PlayEntryFormState extends State<PlayEntryForm> {
           ? () {
               int points = 0;
               String outcome = 'Success';
+              String? scoringTeamId;
+
               if (_isTouchdown) {
                 points = 6;
-                outcome = 'TOUCHDOWN';
+                if (widget.phase == PlayPhase.defensa) {
+                  // TD in defense = the rival scored
+                  outcome = 'TD RIVAL';
+                  scoringTeamId = widget.opponentTeamId;
+                } else {
+                  outcome = 'TOUCHDOWN';
+                  scoringTeamId = null; // own team by default
+                }
               }
               if (_extraPointValue > 0) {
                 points = _extraPointValue;
@@ -730,6 +773,7 @@ class _PlayEntryFormState extends State<PlayEntryForm> {
               if (_selectedAction == 'SAFETY') {
                 points = 2;
                 outcome = 'SAFETY';
+                scoringTeamId = null; // our team scored
               }
               if (_selectedAction == 'PASE' && _selectedPassOutcome != null) {
                 outcome = 'PASE $_selectedPassOutcome';
@@ -746,35 +790,22 @@ class _PlayEntryFormState extends State<PlayEntryForm> {
                 playerIds.add(_selectedPlayer2Id!);
               }
 
-              final opponentPlayerIds = <String>[];
-              bool isRivalScoring = false;
-
-              if (_selectedOpponentPlayerId != null &&
-                  _selectedOpponentPlayerId != 'opponent_default') {
-                opponentPlayerIds.add(_selectedOpponentPlayerId!);
-                // If a rival player is selected, points go to them
-                isRivalScoring = true;
-              }
-
-              final scoringTeamId = points > 0
-                  ? (isRivalScoring ? widget.opponentTeamId : null)
-                  : null;
-
               widget.onPlayAdded(
                 _selectedAction!,
                 outcome,
                 points,
                 _yards,
-                _minute,
+                _resolveMinute(),
                 _selectedDown,
                 playerIds,
-                opponentPlayerIds,
+                const [], // no more rival player IDs under new model
                 scoringTeamId,
                 _foulType,
                 _isLossOfDown,
                 _isAutomaticFirstDown,
                 _penalizingTeamId,
               );
+
               final playDescription = points > 0
                   ? '$outcome (+ $points PTS)'
                   : outcome;
