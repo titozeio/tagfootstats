@@ -137,3 +137,24 @@
  - [x] En la sección de estadísticas tampoco muestra el nombre de los rivales, aparece también "Opo_1", etc. 
  - [x] En la sección de estadísticas no se registran bien las estadísticas. Le está asiganando todas las  jugadas al equipo del usuario. 
  - [x] En la sección de estadísticas no se muestran todas las estadísticas. Debería mostrar para cada equipo todas las posibles jugadas que se pueden registrar durante un partido (pases, carreras, sacks, fumbles, faltas, touchdowns, no pat, 1pt, 2pt,  flag quitado, intercepción, batted, safety, falta,... todas, vaya). Y que las muestre bien. Tanto para cada equipo, como para cada jugador. Ahora mismo no hace nada bien.
+
+## Phase 12: Gameplay Recording Overhaul [x]
+
+ - [x] **Perspectiva única del equipo del usuario**: Todas las jugadas se registran desde el punto de vista del equipo del usuario. Jugadas ofensivas = puntos para el usuario; jugadas defensivas = el usuario defiende (puntos del rival se controlan vía scoringTeamId).
+   - [x] `play_entry_form.dart`: Eliminar dropdown "JUGADOR RIVAL" del formulario de registro.
+   - [x] `play_entry_form.dart`: En defensa, el toggle TOUCHDOWN registra TD del RIVAL (scoringTeamId=opponentId).
+   - [x] `stats_aggregator.dart`: Cambiar `_resolveOffenseTeamRef` — `phase=defensa` ahora significa que el equipo del usuario realiza la jugada defensiva (offenseTeamRef = ownTeamId para jugadas defensivas).
+ - [x] **Color coding de jugadas**: Ataque = color del equipo del usuario (azul si local, rojo si visitante). Defensa = color opuesto.
+   - [x] `match_page.dart`: Simplificar `_isPlayLocal()` con nueva lógica de colores.
+ - [x] **Estadísticas de pases COM/INC/INT**: Distinguir pases completos, incompletos e interceptados en stats.
+   - [x] `stats_aggregator.dart`: Añadir contadores `passesComplete`, `passesIncomplete`, `passesIntercepted` a `TeamStatsAggregate` y `PlayerStatsAggregate`.
+   - [x] `advanced_stats_page.dart`: Mostrar chips COM/INC/INT en stats de equipo y columnas en tabla de jugadores.
+ - [x] **Nuevas jugadas defensivas**: Añadir "AVANCE MÁXIMO" y "FLAG FALLIDO" al panel de defensa.
+   - [x] `play_entry_form.dart`: Añadir las dos nuevas acciones al grid de defensa.
+   - [x] `stats_aggregator.dart`: Contabilizar las nuevas acciones en aggregates de equipo y jugador.
+   - [x] `advanced_stats_page.dart`: Reflejar las nuevas métricas en la UI.
+ - [x] **OT (Overtime)**: Checkbox "OT" en el selector de minuto. Internamente min=61+n; en la UI mostrar "OT".
+   - [x] `play_entry_form.dart`: Añadir checkbox OT, deshabilitar slider cuando OT está activo.
+   - [x] `match_page.dart`: Mostrar "OT" en lista de jugadas cuando minute >= 61. `_calculateTimeLeft` devuelve "OT".
+ - [x] **Documentación**: Actualizar `functional_specs.md` y `technical_design.md` con los nuevos cambios.
+ - [x] **Tests**: Actualizar y ampliar `stats_aggregator_test.dart` para cubrir los nuevos comportamientos.

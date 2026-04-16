@@ -36,32 +36,38 @@ TagFootStats is a Flutter application designed to record, track, and consult sta
 Statistics are recorded in real-time or post-match. The interface updates the score and main stats dynamically.
 
 ### 3.1 Play Components
-- **Phase**: Enum { Ataque, Defensa, Extra Point }
-- **Minute**: Integer (Game clock)
-- **Involved Players**: List of References to Player (Optional)
+- **Phase**: Enum { Ataque, Defensa, Extra Point } — **always from the user's team perspective**:
+  - `Ataque`: user's team executes offensive play; points go to user's team.
+  - `Defensa`: user's team executes defensive play; a TOUCHDOWN marked here means the **rival** scored (stored via `scoringTeamId = opponentId`).
+- **Minute**: Integer. Overtime plays stored as integers >= 61 (61, 62, …) and displayed as `"OT"` in the UI.
+- **Involved Players**: List of References to Player from the user's team (Optional).
 
 ### 3.2 Action Details
 
-| Phase           | Action       | Outcome           | Points/Effect                    |
-| :-------------- | :----------- | :---------------- | :------------------------------- |
-| **Ataque**      | Pase         | Completo (Yardas) | +6 pts if TD                     |
-|                 |              | Incompleto        | -                                |
-|                 |              | Interceptado      | Pick6 (+6 pts rival) or No Pick6 |
-|                 | Carrera      | Yardas            | +6 pts if TD                     |
-|                 | Recepción    | Completo (Yardas) | +6 pts if TD                     |
-|                 |              | Incompleto        | -                                |
-|                 | Sack         | Yardas (Loss)     | -                                |
-|                 | Safety       | -                 | +2 pts to Opponent               |
-|                 | Fumble       | Yardas (Loss)     | -                                |
-|                 | Falta        | Yardas (Penalty)  | -                                |
-| **Defensa**     | Flag Pull    | Yardas (Stop)     | -                                |
-|                 | Intercepción | Yardas            | Pick6 (+6 pts) or No Pick6       |
-|                 | Falta        | Yardas (Penalty)  | -                                |
-| **Extra Point** | Pase         | Completo          | +1 or +2 pts                     |
-|                 |              | Incompleto        | -                                |
-|                 |              | Interceptado      | Pick2 (+2 pts rival) or No Pick2 |
-|                 | Carrera      | Completo          | +1 or +2 pts                     |
-|                 |              | Fallido           | -                                |
+| Phase           | Action        | Outcome (pase)               | Points/Effect                             |
+| :-------------- | :------------ | :--------------------------- | :---------------------------------------- |
+| **Ataque**      | Pase          | Completo (COM) + Yardas      | +6 pts if TOUCHDOWN toggle                |
+|                 |               | Incompleto (INC)             | -                                         |
+|                 |               | Interceptado (INT)           | Rival ball; opponent gets INT stat credit |
+|                 | Carrera       | Yardas                       | +6 pts if TOUCHDOWN toggle                |
+|                 | Sack          | Yardas (Loss)                | Rival gets Sack credit                    |
+|                 | Safety        | -                            | +2 pts to Opponent                        |
+|                 | Fumble        | Yardas (Loss)                | -                                         |
+|                 | Falta         | Yardas (Penalty)             | -                                         |
+| **Defensa**     | Flag Quitado  | Yardas (Stop)                | -                                         |
+|                 | Avance Máximo | Yardas                       | Rival reached max advance; our stat       |
+|                 | Flag Fallido  | -                            | We missed a flag pull; our stat           |
+|                 | Sack (def)    | Yardas                       | Our team sacks rival QB                   |
+|                 | Intercepción  | Yardas                       | Our team INT — Pick-6 toggle → +6 our pts |
+|                 | Batted        | -                            | Our team batted the pass                  |
+|                 | Safety (def)  | -                            | +2 pts to our team                        |
+|                 | Falta         | Yardas (Penalty)             | -                                         |
+|                 | *TD Rival*    | TOUCHDOWN toggle in any def. | +6 pts to Opponent (scoringTeamId=opp)    |
+| **Extra Point** | Pase          | Completo                     | +1 or +2 pts                              |
+|                 |               | Incompleto                   | -                                         |
+|                 |               | Interceptado                 | Pick2 (+2 pts rival)                      |
+|                 | Carrera       | Completo                     | +1 or +2 pts                              |
+|                 |               | Fallido                      | -                                         |
 
 ## 6. Detailed Feature Specs
 - [Faltas (Fouls) System](file:///d:/projects/tagfootstats/tagfootstats/docs/specs/faltas_spec.md)

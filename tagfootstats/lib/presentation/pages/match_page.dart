@@ -150,6 +150,7 @@ class MatchView extends StatelessWidget {
   String _calculateTimeLeft(List<Play> plays) {
     if (plays.isEmpty) return '00:00';
     final maxMin = plays.map((p) => p.minute).reduce((a, b) => a > b ? a : b);
+    if (maxMin >= 61) return 'OT';
     return '${maxMin.toString().padLeft(2, '0')}:00';
   }
 
@@ -266,7 +267,6 @@ class MatchView extends StatelessWidget {
     return PlayEntryForm(
       phase: phase,
       players: state.players,
-      opponentPlayers: state.opponentPlayers,
       opponentTeamId: state.match.opponentId,
       homeScore: state.match.homeScore,
       awayScore: state.match.awayScore,
@@ -335,23 +335,29 @@ class MatchView extends StatelessWidget {
       itemCount: sortedPlays.length,
       itemBuilder: (context, index) {
         final play = sortedPlays[index];
-        final isOffense = play.phase == PlayPhase.ataque;
+        final isAttack = play.phase == PlayPhase.ataque;
         final isFoul = play.action == 'FALTA';
 
-        final isLocalPlay = _isPlayLocal(play, state.match);
+        // Color: ataque → nuestro equipo (local=azul, visitante=rojo)
+        //        defensa → color opuesto (local=rojo, visitante=azul)
+        final isLocal = state.match.locationType == entity.LocationType.local;
+        final useOwnColor = isFoul ? false : (isAttack ? isLocal : !isLocal);
+        final playColor = isFoul
+            ? Colors.amber.withValues(alpha: 0.1)
+            : (useOwnColor
+                  ? AppColors.primaryBlue.withValues(alpha: 0.1)
+                  : AppColors.accentRed.withValues(alpha: 0.1));
 
+        // Minute label
+        final minuteLabel = play.minute >= 61 ? 'OT' : '${play.minute}\'M';
         return Card(
           margin: const EdgeInsets.only(bottom: 8),
-          color: isFoul
-              ? Colors.amber.withValues(alpha: 0.1)
-              : (isLocalPlay
-                    ? AppColors.primaryBlue.withValues(alpha: 0.1)
-                    : AppColors.accentRed.withValues(alpha: 0.1)),
+          color: playColor,
           child: ListTile(
             leading: CircleAvatar(
               backgroundColor: isFoul
                   ? Colors.amber
-                  : (isOffense
+                  : (isAttack
                         ? AppColors.offensivePurple
                         : AppColors.defensiveGreen),
               child: Text(
@@ -375,7 +381,7 @@ class MatchView extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'MIN: ${play.minute} | ${play.down != null ? "${play.down}º DOWN | " : ""}${play.yardas} YDS | ${isOffense ? "ATAQUE" : "DEFENSA"}',
+                  'MIN: $minuteLabel | ${play.down != null ? "${play.down}º DOWN | " : ""}${play.yardas} YDS | ${isAttack ? "ATAQUE" : "DEFENSA"}',
                   style: const TextStyle(fontSize: 11, color: Colors.grey),
                 ),
                 if (isFoul) ...[
@@ -392,10 +398,9 @@ class MatchView extends StatelessWidget {
                       ),
                     ),
                 ],
-                if (play.involvedPlayerIds.isNotEmpty ||
-                    play.opponentInvolvedPlayerIds.isNotEmpty)
+                if (play.involvedPlayerIds.isNotEmpty)
                   Text(
-                    'JUGADORES: ${_resolvePlayerNames(play, state.players, state.opponentPlayers)}',
+                    'JUGADORES: ${_resolvePlayerNames(play, state.players)}',
                     style: const TextStyle(
                       fontSize: 11,
                       color: AppColors.nflGold,
@@ -412,11 +417,7 @@ class MatchView extends StatelessWidget {
     );
   }
 
-  String _resolvePlayerNames(
-    Play play,
-    List<Player> players,
-    List<Player> opponentPlayers,
-  ) {
+  String _resolvePlayerNames(Play play, List<Player> players) {
     final names = <String>[];
 
     for (final id in play.involvedPlayerIds) {
@@ -425,15 +426,6 @@ class MatchView extends StatelessWidget {
         names.add('#${p.dorsal} ${p.firstName}');
       } else {
         names.add('#$id');
-      }
-    }
-
-    for (final id in play.opponentInvolvedPlayerIds) {
-      final p = opponentPlayers.where((player) => player.id == id).firstOrNull;
-      if (p != null) {
-        names.add('#${p.dorsal} ${p.firstName}');
-      } else {
-        names.add('RIVAL');
       }
     }
 
@@ -477,30 +469,5 @@ class MatchView extends StatelessWidget {
       penalizingTeamId: penalizingTeamId,
     );
     context.read<MatchBloc>().add(AddPlayEvent(play));
-  }
-
-  bool _isPlayLocal(Play play, entity.Match match) {
-    bool isOurTeamPlay;
-
-    // Check who is involved
-    if (play.involvedPlayerIds.isNotEmpty) {
-      isOurTeamPlay = true;
-    } else if (play.opponentInvolvedPlayerIds.isNotEmpty) {
-      isOurTeamPlay = false;
-    } else {
-      // Fallback to phase (Ataque = US, Defensa = RIVAL)
-      isOurTeamPlay = play.phase == PlayPhase.ataque;
-    }
-
-    if (match.locationType == entity.LocationType.local) {
-      // Our team is Local
-      return isOurTeamPlay;
-    } else if (match.locationType == entity.LocationType.visitante) {
-      // Our team is Visitor, so Rival play (isOurTeamPlay == false) is Local
-      return !isOurTeamPlay;
-    } else {
-      // Neutro: Default Our team to Local for color purposes
-      return isOurTeamPlay;
-    }
   }
 }
